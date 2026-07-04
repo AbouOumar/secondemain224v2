@@ -85,11 +85,10 @@
 <?php endif; ?>
 <?php endif; ?>
 
+<?php echo $__env->make('profile.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
 <div class="d-flex gap-2 mb-4">
 <a href="<?php echo e(route('articles.create')); ?>" class="btn btn-primary px-4"><i class="bx bx-plus-circle"></i> Nouvelle annonce</a>
-<a href="<?php echo e(route('profile.listings')); ?>" class="btn btn-outline-secondary px-4">Mes annonces</a>
-<a href="<?php echo e(route('profile.saved')); ?>" class="btn btn-outline-secondary px-4">Mes favoris</a>
-<a href="<?php echo e(route('profile.edit')); ?>" class="btn btn-outline-secondary px-4">Mon profil</a>
 </div>
 
 <?php if(isset($earnings)): ?>

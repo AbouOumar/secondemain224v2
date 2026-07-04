@@ -12,7 +12,7 @@ class HomeController extends Controller
     {
         $categories = Category::with('children')->orderBy('libelle')->get();
         // Récupérer les articles des partenaires vérifiés
-        $partnerArticles = Article::whereHas('user.partner', function($query) {
+        $partnerArticles = Article::disponible()->whereHas('user.partner', function($query) {
             $query->where('is_verified', true);
         })
         ->where('is_published', 1)
@@ -24,7 +24,7 @@ class HomeController extends Controller
         ->get();
         
         // Récupérer quelques articles en vedette pour l'affichage initial
-        $featuredArticles = Article::with(['images', 'user', 'category'])
+        $featuredArticles = Article::disponible()->with(['images', 'user', 'category'])
             ->where('is_published', 1)
             ->orderBy('is_boosted', 'desc')
             ->orderBy('created_at', 'desc')
@@ -38,7 +38,7 @@ class HomeController extends Controller
     {
         $categories = Category::with('children')->orderBy('libelle')->get();
 
-        $partnerArticles = Article::whereHas('user.partner', function($query) {
+        $partnerArticles = Article::disponible()->whereHas('user.partner', function($query) {
             $query->where('is_verified', true);
         })
         ->where('is_published', 1)
@@ -49,7 +49,7 @@ class HomeController extends Controller
         ->take(6)
         ->get();
 
-        $query = Article::with(['images', 'user', 'category'])
+        $query = Article::disponible()->with(['images', 'user', 'category'])
             ->where('is_published', 1);
 
         if ($request->filled('search')) {

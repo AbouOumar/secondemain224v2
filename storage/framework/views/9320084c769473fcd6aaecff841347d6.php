@@ -108,6 +108,9 @@
 <div class="card-body p-4">
 <div class="d-flex justify-content-between align-items-center mb-3">
 <h3 class="fw-bold mb-0"><?php echo e(number_format($article->prix, 0, ',', ' ')); ?> <?php echo e($article->currency->value); ?></h3>
+<?php if($article->is_boosted): ?>
+<span class="badge bg-warning text-dark"><i class="bx bx-rocket"></i> Boosté</span>
+<?php endif; ?>
 <?php if($article->with_delivery): ?>
 <span class="badge bg-info text-white"><i class="bx bx-check"></i> Livraison disponible</span>
 <?php endif; ?>
@@ -125,6 +128,9 @@
 
 <h6 class="fw-bold"><i class="bx bx-user-circle"></i> Vendeur</h6>
 <p class="mb-1 fw-medium"><?php echo e($article->user->name ?? 'Anonyme'); ?></p>
+<?php if($article->user->role->value === 'revendeur_pro' && $article->user->partner): ?>
+<p class="mb-1"><a href="<?php echo e(route('magasin.show', $article->user->partner->slug)); ?>" class="text-decoration-none small"><i class='bx bx-store'></i> <?php echo e($article->user->partner->nom_magasin); ?></a></p>
+<?php endif; ?>
 <?php if($article->user->phone): ?>
 <p class="text-muted small mb-2"><i class="bx bx-phone"></i> <?php echo e($article->user->phone); ?></p>
 <?php endif; ?>

@@ -19,6 +19,30 @@
     <?php endif; ?>
 
     <div class="row g-4">
+        <!-- Magasin -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">Mon Magasin</h5>
+                        <i class='bx bx-store fs-4 text-primary'></i>
+                    </div>
+                    <?php $partner = auth()->user()->partner; ?>
+                    <?php if($partner): ?>
+                        <p class="mb-1 fw-medium"><?php echo e($partner->nom_magasin); ?></p>
+                        <p class="text-muted small mb-2"><?php echo e($partner->articles()->count()); ?> article(s)</p>
+                        <div class="d-flex gap-2">
+                            <a href="<?php echo e(route('magasin.dashboard')); ?>" class="btn btn-sm btn-outline-primary">Gérer</a>
+                            <a href="<?php echo e($partner->url); ?>" class="btn btn-sm btn-outline-secondary" target="_blank">Voir</a>
+                        </div>
+                    <?php else: ?>
+                        <p class="text-muted small mb-2">Vous n'avez pas encore de magasin.</p>
+                        <a href="<?php echo e(route('magasin.setup')); ?>" class="btn btn-sm btn-primary">Créer mon magasin</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
         <!-- Subscription Status -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100">
@@ -159,6 +183,11 @@
                                 </div>
                                 <div class="text-end">
                                     <span class="badge bg-<?php echo e($order->status === 'livre' ? 'success' : ($order->status === 'paye' ? 'warning' : 'secondary')); ?>"><?php echo e($order->status); ?></span>
+                                    <?php if($order->delivery && in_array($order->delivery->status->value, ['acceptee', 'en_cours', 'effectuee'])): ?>
+                                        <a href="<?php echo e(route('deliveries.tracking', $order->delivery->id)); ?>" class="btn btn-sm btn-outline-info mt-1">
+                                            <i class='bx bx-map'></i> Suivre
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <hr class="my-1">

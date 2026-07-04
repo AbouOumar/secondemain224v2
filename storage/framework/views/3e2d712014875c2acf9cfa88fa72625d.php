@@ -1,5 +1,7 @@
 <?php $__env->startSection('content'); ?>
 <div class="container py-4">
+<?php echo $__env->make('profile.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
 <h2 class="mb-4">Mon profil</h2>
 
 <div class="row justify-content-center">

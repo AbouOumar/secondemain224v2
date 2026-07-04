@@ -90,7 +90,7 @@
                                         <li><i class='bx bx-check-circle text-success me-2'></i> Support standard</li>
                                     </ul>
                                     <?php if(!auth()->user()->subscription || auth()->user()->subscription->plan_type !== 'basic'): ?>
-                                        <a href="#" class="btn btn-primary w-100" data-plan="basic">Sélectionner ce plan</a>
+                                        <button type="button" class="btn btn-primary w-100 select-plan" data-plan="basic">Sélectionner ce plan</button>
                                     <?php else: ?>
                                         <span class="btn btn-outline-primary w-100">Actif</span>
                                     <?php endif; ?>
@@ -117,7 +117,7 @@
                                         <li><i class='bx bx-check-circle text-success me-2'></i> Support prioritaire</li>
                                     </ul>
                                     <?php if(!auth()->user()->subscription || auth()->user()->subscription->plan_type !== 'pro'): ?>
-                                        <a href="#" class="btn btn-primary w-100" data-plan="pro">Sélectionner ce plan</a>
+                                        <button type="button" class="btn btn-primary w-100 select-plan" data-plan="pro">Sélectionner ce plan</button>
                                     <?php else: ?>
                                         <span class="btn btn-outline-primary w-100">Actif</span>
                                     <?php endif; ?>
@@ -143,7 +143,7 @@
                                         <li><i class='bx bx-check-circle text-success me-2'></i> Formation personnalisée</li>
                                     </ul>
                                     <?php if(!auth()->user()->subscription || auth()->user()->subscription->plan_type !== 'enterprise'): ?>
-                                        <a href="#" class="btn btn-primary w-100" data-plan="enterprise">Sélectionner ce plan</a>
+                                        <button type="button" class="btn btn-primary w-100 select-plan" data-plan="enterprise">Sélectionner ce plan</button>
                                     <?php else: ?>
                                         <span class="btn btn-outline-primary w-100">Actif</span>
                                     <?php endif; ?>
@@ -161,23 +161,78 @@
 <?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const planButtons = document.querySelectorAll('[data-plan]');
-    
-    planButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (!csrfToken) return;
+
+    document.querySelectorAll('.select-plan').forEach(btn => {
+        btn.addEventListener('click', function() {
             const plan = this.getAttribute('data-plan');
-            
-            // Show confirmation modal
-            if (confirm(`Êtes-vous sûr de vouloir souscrire au plan ${plan.toUpperCase()} ?`)) {
-                // In a real app, this would initiate payment process
-                alert(`Souscription au plan ${plan.toUpperCase()} initiée. Vous serez redirigé vers le paiement.`);
-                // For demo purposes, we'll just show success
-                alert(`Félicitations ! Vous êtes maintenant abonné au plan ${plan.toUpperCase()}.`);
-                location.reload(); // Reload to show updated status
-            }
+            if (!confirm(`Êtes-vous sûr de vouloir souscrire au plan ${plan.toUpperCase()} ?`)) return;
+
+            const submitBtn = this;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Traitement...';
+
+            fetch('<?php echo e(route("api.subscription.store")); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({
+                    plan_type: plan,
+                    payment_method: 'wallet',
+                }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.subscription) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Erreur lors de la souscription');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Sélectionner ce plan';
+                }
+            })
+            .catch(() => {
+                alert('Erreur réseau. Veuillez réessayer.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sélectionner ce plan';
+            });
         });
     });
+
+    const cancelForm = document.querySelector('form[action*="subscription.cancel"]');
+    if (cancelForm) {
+        cancelForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!confirm('Êtes-vous sûr de vouloir annuler votre abonnement ?')) return;
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Annulation...';
+
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    location.reload();
+                }
+            })
+            .catch(() => {
+                alert('Erreur réseau. Veuillez réessayer.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Annuler l\'abonnement';
+            });
+        });
+    }
 });
 </script>
 <?php $__env->stopPush(); ?>

@@ -76,6 +76,14 @@
 <input type="text" name="localisation" class="form-control form-control-lg" placeholder="Ex: Conakry, Ratoma" value="{{ old('localisation', $article->localisation) }}" required>
 </div>
 
+@if(auth()->user()?->role?->value === 'revendeur_pro')
+<div class="mb-3">
+<label class="form-label fw-medium">Quantité disponible</label>
+<input type="number" name="stock" class="form-control form-control-lg" placeholder="Ex: 10" value="{{ old('stock', $article->stock) }}" min="0">
+<small class="text-muted">Modifiez la quantité si nécessaire.</small>
+</div>
+@endif
+
 <div class="mb-4">
 <div class="form-check form-switch mb-2">
 <input class="form-check-input" type="checkbox" name="with_delivery" id="withDelivery" value="1" {{ old('with_delivery', $article->with_delivery) ? 'checked' : '' }}>

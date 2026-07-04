@@ -32,11 +32,20 @@ class Article extends Model
         'boosted_until',
         'is_verified',
         'is_published',
+        'statut',
+        'date_fin',
         'vue_count',
         'view_count',
         'contact_count',
         'last_viewed_at',
     ];
+
+    public function scopeDisponible($query)
+    {
+        return $query->where(fn($q) =>
+            $q->where('statut', '!=', 'vendu')->orWhereNull('statut')
+        );
+    }
 
     protected function casts(): array
     {

@@ -19,7 +19,7 @@ class ArticleController extends Controller
 
         $article->increment('vue_count');
 
-        $relatedArticles = Article::where('category_id', $article->category_id)
+        $relatedArticles = Article::disponible()->where('category_id', $article->category_id)
             ->where('id', '!=', $article->id)
             ->where('is_published', true)
             ->latest()
@@ -46,6 +46,7 @@ class ArticleController extends Controller
             'localisation' => 'required|string|max:191',
             'etat' => 'nullable|string',
             'with_delivery' => 'nullable|boolean',
+            'stock' => 'nullable|integer|min:0',
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
@@ -63,6 +64,7 @@ class ArticleController extends Controller
             'with_delivery' => $request->boolean('with_delivery', true),
             'is_published' => true,
             'statut' => 'en_vente',
+            'stock' => $request->stock ?? 1,
         ]);
 
         if ($request->hasFile('images')) {
@@ -94,13 +96,14 @@ class ArticleController extends Controller
             'prix' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
             'localisation' => 'required|string|max:191',
+            'stock' => 'nullable|integer|min:0',
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $article->update($request->only([
             'titre', 'description', 'prix', 'currency', 'category_id',
-            'localisation', 'etat', 'with_delivery', 'delivery_prix'
+            'localisation', 'etat', 'with_delivery', 'delivery_prix', 'stock'
         ]));
 
         // Delete specific images if requested

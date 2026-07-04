@@ -14,6 +14,10 @@ class OrderController extends Controller
 {
     public function store(StoreOrderRequest $request) {
         $article = Article::findOrFail($request->article_id);
+
+        if ($article->statut === 'vendu') {
+            return response()->json(['message' => 'Cet article a déjà été vendu.'], 409);
+        }
         $total = $article->prix;
         $deliveryPrix = 0;
 

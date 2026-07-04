@@ -14,7 +14,7 @@ class ArticleController extends Controller
     public function __construct(private ImageCompressionService $imageCompression) {}
 
     public function index(Request $request) {
-        $query = Article::where('is_published', true)
+        $query = Article::disponible()->where('is_published', true)
             ->with(['images', 'user', 'category']);
 
         if ($request->filled('category_id')) {

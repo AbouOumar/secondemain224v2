@@ -18,6 +18,10 @@ class OrderController extends Controller
         // Validate the article exists
         $article = Article::findOrFail($articleId);
 
+        if ($article->statut === 'vendu') {
+            return back()->with('error', 'Cet article a déjà été vendu.');
+        }
+
         // Validate delivery parameter
         $delivery = (int)$delivery === 1;
 

@@ -58,7 +58,7 @@
                             </div>
                         <?php endif; ?>
 
-                        <form method="POST" action="<?php echo e(route('api.verification.submit')); ?>" enctype="multipart/form-data">
+                        <form id="verification-form" method="POST" enctype="multipart/form-data">
                             <?php echo csrf_field(); ?>
                             
                             <h5 class="mb-4">Soumettre vos documents de vérification</h5>
@@ -98,7 +98,7 @@
                             </div>
 
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submit-verification">
                                     Soumettre pour vérification
                                 </button>
                             </div>
@@ -114,29 +114,55 @@
 <?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form[action*="verification.submit"]');
-    const documentInput = document.querySelector('input[name="document"]');
-    const selfieInput = document.querySelector('input[name="selfie"]');
-    
-    if (form && documentInput && selfieInput) {
-        form.addEventListener('submit', function(e) {
-            const docFile = documentInput.files[0];
-            selfieFile = selfieInput.files[0];
-            
-            // Basic file validation
-            if (docFile && docFile.size > 5 * 1024 * 1024) {
-                e.preventDefault();
-                alert('La pièce d identité ne doit pas dépasser 5 Mo');
-                return false;
+    const form = document.getElementById('verification-form');
+    const submitBtn = document.getElementById('submit-verification');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (!form || !csrfToken) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const docFile = form.querySelector('input[name="document"]').files[0];
+        const selfieFile = form.querySelector('input[name="selfie"]').files[0];
+
+        if (docFile && docFile.size > 5 * 1024 * 1024) {
+            alert('La pièce d\'identité ne doit pas dépasser 5 Mo');
+            return;
+        }
+        if (selfieFile && selfieFile.size > 2 * 1024 * 1024) {
+            alert('Le selfie ne doit pas dépasser 2 Mo');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Envoi en cours...';
+
+        const formData = new FormData(form);
+
+        fetch('<?php echo e(route("api.verification.submit")); ?>', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: formData,
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'pending') {
+                location.reload();
+            } else {
+                alert(data.message || 'Erreur lors de l\'envoi');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Soumettre pour vérification';
             }
-            
-            if (selfieFile && selfieFile.size > 2 * 1024 * 1024) {
-                e.preventDefault();
-                alert('Le selfie ne doit pas dépasser 2 Mo');
-                return false;
-            }
+        })
+        .catch(() => {
+            alert('Erreur réseau. Veuillez réessayer.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Soumettre pour vérification';
         });
-    }
+    });
 });
 </script>
 <?php $__env->stopPush(); ?>

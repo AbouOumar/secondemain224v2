@@ -1,5 +1,7 @@
 <?php $__env->startSection('content'); ?>
 <div class="container py-4">
+    <?php echo $__env->make('profile.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold">Mes favoris</h2>
     </div>

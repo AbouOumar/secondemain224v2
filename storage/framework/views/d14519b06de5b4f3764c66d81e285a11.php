@@ -12,6 +12,7 @@
     <link rel="manifest" href="/manifest.json">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <?php echo $__env->yieldPushContent('styles'); ?>
     <style>
         :root {
             --primary: #e66a00;
@@ -546,6 +547,9 @@
                         </li>
                         <?php if($role === 'revendeur_pro'): ?>
                         <li class="nav-item">
+                            <a class="nav-link px-3" href="<?php echo e(url('/seller/pro/magasin')); ?>">Mon Magasin</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link px-3" href="<?php echo e(url('/seller/pro/tableau-de-bord')); ?>">Tableau de bord</a>
                         </li>
                         <?php endif; ?>
@@ -559,6 +563,18 @@
                             <a class="nav-link px-3" href="<?php echo e(url('/v1/admin/dashboard')); ?>">Admin</a>
                         </li>
                         <?php endif; ?>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="<?php echo e(url('/notifications')); ?>">Notifications
+                                <?php if(auth()->guard()->check()): ?>
+                                <?php
+                                    $unreadNotif = \App\Models\Notification::where('user_id', Auth::id())->where('is_read', false)->count();
+                                ?>
+                                <?php if($unreadNotif > 0): ?>
+                                    <span class="badge bg-danger rounded-pill ms-1" style="font-size:0.65rem;" id="notif-badge"><?php echo e($unreadNotif); ?></span>
+                                <?php endif; ?>
+                                <?php endif; ?>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link px-3" href="<?php echo e(url('/messages')); ?>">Messages
                                 <?php if(auth()->guard()->check()): ?>
@@ -593,6 +609,24 @@
         </nav>
         
         <main>
+            <?php if(session('success')): ?>
+                <div class="container mt-3">
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class='bx bx-check-circle me-1'></i> <?php echo e(session('success')); ?>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            <?php endif; ?>
+            <?php if(session('error')): ?>
+                <div class="container mt-3">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class='bx bx-error-circle me-1'></i> <?php echo e(session('error')); ?>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            <?php endif; ?>
             <?php echo $__env->yieldContent('content'); ?>
         </main>
         

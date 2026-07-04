@@ -42,7 +42,7 @@
 <p class="card-text fw-bold mb-3"><?php echo e(number_format($article->prix, 0, ',', ' ')); ?> <?php echo e($article->currency?->value); ?></p>
 <div class="d-flex justify-content-between align-items-center mt-auto">
 <a href="<?php echo e(route('articles.show', $article->slug)); ?>" class="btn btn-sm btn-outline-primary">Voir détails</a>
-<span class="badge bg-success"><?php echo e($article->user->partner->nom_magasin); ?></span>
+                    <a href="<?php echo e(route('magasin.show', $article->user->partner->slug)); ?>" class="badge bg-success text-decoration-none"><?php echo e($article->user->partner->nom_magasin); ?></a>
 </div>
 </div>
 </div>
@@ -65,6 +65,31 @@
 <div class="mt-1 small"><?php echo e($cat->libelle); ?></div>
 </div>
 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+</div>
+</section>
+
+<!-- Filtres avancés -->
+<section class="pb-2">
+<div class="container">
+<div class="bg-light rounded-3 p-3">
+<div class="row g-2 align-items-end">
+<div class="col-md-3 col-6">
+<label class="form-label small text-muted mb-1">Prix min</label>
+<input type="number" id="filterMinPrice" class="form-control form-control-sm" placeholder="Min" min="0">
+</div>
+<div class="col-md-3 col-6">
+<label class="form-label small text-muted mb-1">Prix max</label>
+<input type="number" id="filterMaxPrice" class="form-control form-control-sm" placeholder="Max" min="0">
+</div>
+<div class="col-md-4 col-12">
+<label class="form-label small text-muted mb-1">Localisation</label>
+<input type="text" id="filterLocation" class="form-control form-control-sm" placeholder="Ville, quartier...">
+</div>
+<div class="col-md-2 col-12 d-grid">
+<button class="btn btn-primary btn-sm" onclick="applyFilters()"><i class='bx bx-search'></i> Appliquer</button>
+</div>
+</div>
+</div>
 </div>
 </section>
 
@@ -116,22 +141,31 @@ const articlesGrid = document.getElementById('articlesGrid');
 const searchInput = document.getElementById('searchInput');
 let currentCategory = '';
 let currentSearch = '';
+let currentMinPrice = '';
+let currentMaxPrice = '';
+let currentLocation = '';
 let currentPage = 2;
 let loading = false;
 let allLoaded = false;
 let initialLoaded = true;
 
 function renderArticles(html, append = false) {
+if (append && (html.includes('Aucun article') || html.includes('alert-warning'))) return;
 const tmp = document.createElement('div'); tmp.innerHTML = html;
 if (!append) articlesGrid.innerHTML = '';
 while (tmp.firstChild) articlesGrid.appendChild(tmp.firstChild);
 }
 
 function loadArticles(reset = false) {
+if (reset) { currentPage = 1; allLoaded = false; }
 if (loading || allLoaded) return;
 loading = true;
-if (reset) { currentPage = 1; allLoaded = false; articlesGrid.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-muted" role="status"></div></div>'; }
-fetch(`/search?search=${encodeURIComponent(currentSearch)}&category=${currentCategory}&page=${currentPage}&ajax=1`)
+if (reset) { articlesGrid.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-muted" role="status"></div></div>'; }
+let url = `/search?search=${encodeURIComponent(currentSearch)}&category=${currentCategory}&page=${currentPage}&ajax=1`;
+if (currentMinPrice) url += `&min_price=${encodeURIComponent(currentMinPrice)}`;
+if (currentMaxPrice) url += `&max_price=${encodeURIComponent(currentMaxPrice)}`;
+if (currentLocation) url += `&localisation=${encodeURIComponent(currentLocation)}`;
+fetch(url)
 .then(res => res.json())
 .then(data => {
 renderArticles(data.html, !reset);
@@ -152,6 +186,14 @@ loadArticles(true);
 window.addEventListener('scroll', () => {
 if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) loadArticles();
 });
+
+function applyFilters() {
+currentMinPrice = document.getElementById('filterMinPrice').value.trim();
+currentMaxPrice = document.getElementById('filterMaxPrice').value.trim();
+currentLocation = document.getElementById('filterLocation').value.trim();
+initialLoaded = false;
+loadArticles(true);
+}
 
 document.addEventListener('click', e => {
 document.querySelectorAll('.share-popup').forEach(sp => sp.style.display = 'none');

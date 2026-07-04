@@ -118,7 +118,7 @@ class MagasinController extends Controller
     public function show($slug)
     {
         $magasin = Partner::where('slug', $slug)->firstOrFail();
-        $articles = Article::where('user_id', $magasin->user_id)
+        $articles = Article::disponible()->where('user_id', $magasin->user_id)
             ->where('is_published', true)
             ->with('images', 'category')
             ->orderBy('created_at', 'desc')

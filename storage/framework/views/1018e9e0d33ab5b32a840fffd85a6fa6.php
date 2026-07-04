@@ -9,6 +9,9 @@
 <h6 class="title mb-1 text-truncate" title="<?php echo e($item->titre); ?>"><?php echo e($item->titre); ?></h6>
 <p class="text-muted small mb-1 flex-grow-1"><?php echo e(Str::limit($item->description, 80)); ?></p>
 <span class="small text-muted mb-2"><?php echo e($item->category->libelle ?? ''); ?></span>
+<?php if($item->user->role->value === 'revendeur_pro' && $item->user->partner): ?>
+<div class="mb-2"><a href="<?php echo e(route('magasin.show', $item->user->partner->slug)); ?>" class="small text-decoration-none"><i class='bx bx-store'></i> <?php echo e($item->user->partner->nom_magasin); ?></a></div>
+<?php endif; ?>
 <div class="d-flex gap-2 position-relative mt-auto">
 <a href="<?php echo e(route('articles.show', $item->slug)); ?>" class="btn btn-sm btn-primary w-100">Voir</a>
 <button type="button" class="btn btn-sm btn-outline-secondary share-btn" data-url="<?php echo e(route('articles.show', $item->slug)); ?>"><i class='bx bx-share-alt'></i></button>

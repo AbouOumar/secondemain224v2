@@ -9,6 +9,15 @@
 <h6 class="title mb-1 text-truncate" title="{{ $item->titre }}">{{ $item->titre }}</h6>
 <p class="text-muted small mb-1 flex-grow-1">{{ Str::limit($item->description, 80) }}</p>
 <span class="small text-muted mb-2">{{ $item->category->libelle ?? '' }}</span>
+@if($item->user->role->value === 'revendeur_pro')
+<div class="mb-1">
+@if($item->stock > 0)
+<span class="badge bg-success text-white"><i class="bx bx-box"></i> En stock ({{ $item->stock }})</span>
+@else
+<span class="badge bg-danger text-white"><i class='bx bxs-box'></i> Rupture</span>
+@endif
+</div>
+@endif
 @if($item->user->role->value === 'revendeur_pro' && $item->user->partner)
 <div class="mb-2"><a href="{{ route('magasin.show', $item->user->partner->slug) }}" class="small text-decoration-none"><i class='bx bx-store'></i> {{ $item->user->partner->nom_magasin }}</a></div>
 @endif

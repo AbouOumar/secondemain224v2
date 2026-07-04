@@ -15,4 +15,4 @@
         <i class="bx bx-user"></i> Mon profil
     </a>
 </div>
-<?php /**PATH C:\Users\Souare\Documents\secondmainv2\resources\views/profile/nav.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\Souare\Documents\secondmainv2\resources\views\profile\nav.blade.php ENDPATH**/ ?>

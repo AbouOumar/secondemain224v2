@@ -144,6 +144,9 @@
                                             <?php endif; ?>
                                         </div>
                                         <div class="text-end">
+                                            <a href="<?php echo e(route('motard.tracking', $delivery->id)); ?>" class="btn btn-outline-info btn-sm mb-1">
+                                                <i class='bx bx-map'></i> Suivi
+                                            </a>
                                             <?php if($delivery->status === 'acceptee'): ?>
                                                 <form method="POST" action="<?php echo e(route('deliveries.pickup', $delivery->id)); ?>" class="d-inline">
                                                     <?php echo csrf_field(); ?>
