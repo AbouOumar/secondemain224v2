@@ -7,13 +7,7 @@
 <div class="col-lg-7">
 <h2 class="mb-2">Bienvenue sur <span style="color: var(--primary)">Seconde Main 224</span></h2>
 <p class="text-muted">Achetez et vendez facilement des biens d'occasion. Publiez en quelques clics, discutez et organisez la livraison.</p>
-<form id="searchForm" class="d-flex gap-2 mt-3" onsubmit="return false;">
-<div class="search-wrapper w-100">
-<i class='bx bx-search'></i>
-<input id="searchInput" class="form-control form-control-lg" type="search" placeholder="Rechercher un article (titre, description)...">
-</div>
-</form>
-<a href="{{ route('articles.create') }}" class="btn btn-primary mt-3 w-100">
+				<a href="{{ route('articles.create') }}" class="btn btn-primary mt-3 w-100">
 <i class='bx bx-plus me-2'></i> Déposer une annonce
 </a>
 </div>
@@ -140,7 +134,7 @@
 @push('scripts')
 <script>
 const articlesGrid = document.getElementById('articlesGrid');
-const searchInput = document.getElementById('searchInput');
+const searchInput = document.getElementById('mobileSearch');
 let currentCategory = '';
 let currentSearch = '';
 let currentMinPrice = '';

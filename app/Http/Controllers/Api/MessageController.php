@@ -15,11 +15,12 @@ class MessageController extends Controller
         $userId = $request->user()->id;
         $messages = Message::where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
-            ->with(['sender', 'receiver'])
+            ->with(['sender', 'receiver', 'article'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->groupBy(function($message) use ($userId) {
-                return $message->sender_id === $userId ? $message->receiver_id : $message->sender_id;
+                $otherId = $message->sender_id === $userId ? $message->receiver_id : $message->sender_id;
+                return $otherId . '-' . ($message->article_id ?? '0');
             });
 
         $conversations = $messages->map(function($msgs) {
@@ -30,7 +31,7 @@ class MessageController extends Controller
     }
 
     public function index(Request $request, User $user) {
-        $messages = $this->chatService->getConversation($request->user(), $user);
+        $messages = $this->chatService->getConversation($request->user(), $user, $request->article_id);
         return MessageResource::collection($messages);
     }
 

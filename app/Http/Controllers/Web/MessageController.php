@@ -37,16 +37,22 @@ class MessageController extends Controller
 
     public function show(User $user, ?Article $article = null)
     {
-        $conversation = Message::where(function ($q) use ($user) {
+        $query = Message::where(function ($q) use ($user) {
                 $q->where('sender_id', Auth::id())->where('receiver_id', $user->id);
             })->orWhere(function ($q) use ($user) {
                 $q->where('sender_id', $user->id)->where('receiver_id', Auth::id());
-            })->orderBy('created_at', 'asc')
-            ->get();
+            });
+
+        if ($article) {
+            $query->where('article_id', $article->id);
+        }
+
+        $conversation = $query->orderBy('created_at', 'asc')->get();
 
         Message::where('sender_id', $user->id)
             ->where('receiver_id', Auth::id())
             ->where('is_read', false)
+            ->when($article, fn($q) => $q->where('article_id', $article->id))
             ->update(['is_read' => true, 'read_at' => now()]);
 
         return view('messages.show', compact('conversation', 'user', 'article'));

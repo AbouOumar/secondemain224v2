@@ -6,6 +6,7 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -173,6 +174,14 @@ class ProfileController extends Controller
 
         $user->update($request->only('name', 'email', 'phone'));
 
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->update(['avatar' => $path]);
+        }
+
         if ($request->filled('current_password') && $request->filled('new_password')) {
             $request->validate([
                 'current_password' => 'required|current_password',
@@ -187,8 +196,15 @@ class ProfileController extends Controller
     public function avatar(Request $request)
     {
         $request->validate(['avatar' => 'required|image|mimes:jpeg,png,jpg|max:2048']);
+        $user = Auth::user();
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
+        }
         $path = $request->file('avatar')->store('avatars', 'public');
-        Auth::user()->update(['avatar' => $path]);
+        $user->update(['avatar' => $path]);
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'avatar' => asset('storage/'.$path)]);
+        }
         return back()->with('success', 'Photo mise à jour.');
     }
 }

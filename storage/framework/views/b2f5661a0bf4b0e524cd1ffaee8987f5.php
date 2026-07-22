@@ -9,6 +9,15 @@
 <h6 class="title mb-1 text-truncate" title="<?php echo e($item->titre); ?>"><?php echo e($item->titre); ?></h6>
 <p class="text-muted small mb-1 flex-grow-1"><?php echo e(Str::limit($item->description, 80)); ?></p>
 <span class="small text-muted mb-2"><?php echo e($item->category->libelle ?? ''); ?></span>
+<?php if($item->user->role->value === 'revendeur_pro'): ?>
+<div class="mb-1">
+<?php if($item->stock > 0): ?>
+<span class="badge bg-success text-white"><i class="bx bx-box"></i> En stock (<?php echo e($item->stock); ?>)</span>
+<?php else: ?>
+<span class="badge bg-danger text-white"><i class='bx bxs-box'></i> Rupture</span>
+<?php endif; ?>
+</div>
+<?php endif; ?>
 <?php if($item->user->role->value === 'revendeur_pro' && $item->user->partner): ?>
 <div class="mb-2"><a href="<?php echo e(route('magasin.show', $item->user->partner->slug)); ?>" class="small text-decoration-none"><i class='bx bx-store'></i> <?php echo e($item->user->partner->nom_magasin); ?></a></div>
 <?php endif; ?>
@@ -28,4 +37,4 @@
 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
 <div class="col-12"><div class="alert alert-warning">Aucun article trouvé.</div></div>
 <?php endif; ?>
-<?php /**PATH C:\Users\Souare\Documents\secondmainv2\resources\views\partials\articles-grid.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\Souare\Documents\secondmainv2\resources\views/partials/articles-grid.blade.php ENDPATH**/ ?>

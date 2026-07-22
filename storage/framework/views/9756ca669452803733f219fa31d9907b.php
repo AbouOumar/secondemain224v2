@@ -519,10 +519,10 @@
                     <span class="brand">Seconde Main 224</span>
                 </a>
                 
-                <!-- Search Mobile -->
-                <form class="d-lg-none w-100 mt-2" id="mobileSearchForm">
+                <!-- Search Bar -->
+                <form class="w-100 mx-3" id="mobileSearchForm" style="max-width:400px;">
                     <div class="input-group">
-                        <input type="search" name="search" id="mobileSearch" class="form-control" placeholder="Rechercher..." onkeyup="filterArticlesMobile()">
+                        <input type="search" name="search" id="mobileSearch" class="form-control" placeholder="Rechercher un article..." onkeyup="filterArticlesMobile()">
                     </div>
                 </form>
                 
@@ -685,6 +685,7 @@
     </script>
     <script>  
         function filterArticlesMobile() {
+            if (document.getElementById('articlesGrid')) return;
             let value = document.getElementById("mobileSearch").value.toLowerCase();
             let articles = document.querySelectorAll(".article-card");
             articles.forEach(card => {
@@ -700,4 +701,4 @@
         }
     </script>
 </body>
-</html><?php /**PATH C:\Users\Souare\Documents\secondmainv2\resources\views\layouts\app.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\Users\Souare\Documents\secondmainv2\resources\views/layouts/app.blade.php ENDPATH**/ ?>

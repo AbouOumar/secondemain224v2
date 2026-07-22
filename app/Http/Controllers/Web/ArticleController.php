@@ -62,6 +62,7 @@ class ArticleController extends Controller
             'localisation' => $request->localisation,
             'etat' => $request->etat ?? 'bon',
             'with_delivery' => $request->boolean('with_delivery', true),
+            'delivery_prix' => $request->delivery_price,
             'is_published' => true,
             'statut' => 'en_vente',
             'stock' => $request->stock ?? 1,
@@ -101,10 +102,12 @@ class ArticleController extends Controller
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        $article->update($request->only([
+        $data = $request->only([
             'titre', 'description', 'prix', 'currency', 'category_id',
-            'localisation', 'etat', 'with_delivery', 'delivery_prix', 'stock'
-        ]));
+            'localisation', 'etat', 'with_delivery', 'stock'
+        ]);
+        $data['delivery_prix'] = $request->delivery_price;
+        $article->update($data);
 
         // Delete specific images if requested
         if ($request->has('delete_images')) {

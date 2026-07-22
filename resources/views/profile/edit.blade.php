@@ -26,7 +26,7 @@
 <h5 class="fw-bold mb-3">Informations générales</h5>
 
 <div class="mb-3 d-flex align-items-center gap-3">
-<div>
+<div id="avatarPreview">
 @if($user->avatar)
 <img src="{{ asset('storage/' . $user->avatar) }}" width="80" height="80" style="border-radius: 50%; object-fit: cover;">
 @else
@@ -36,8 +36,9 @@
 @endif
 </div>
 <div>
-<input type="file" name="avatar" class="form-control">
+<input type="file" name="avatar" id="avatarInput" class="form-control" accept="image/*">
 <small class="text-muted">PNG, JPG. Max 2 Mo.</small>
+<div id="avatarStatus" class="mt-1 small" style="display:none;"></div>
 </div>
 </div>
 
@@ -84,4 +85,44 @@
 </div>
 </div>
 </div>
+</div>
+@push('scripts')
+<script>
+document.getElementById('avatarInput')?.addEventListener('change', function() {
+const file = this.files[0];
+if (!file) return;
+
+const formData = new FormData();
+formData.append('avatar', file);
+
+const status = document.getElementById('avatarStatus');
+const preview = document.getElementById('avatarPreview');
+status.style.display = 'block';
+status.innerHTML = '<span class="text-primary"><i class="bx bx-loader-alt bx-spin"></i> Téléchargement...</span>';
+
+fetch('{{ route("profile.avatar") }}', {
+method: 'POST',
+headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+body: formData
+})
+.then(r => r.json())
+.then(data => {
+if (data.success) {
+const reader = new FileReader();
+reader.onload = function(e) {
+preview.innerHTML = `<img src="${e.target.result}" width="80" height="80" style="border-radius:50%;object-fit:cover;">`;
+};
+reader.readAsDataURL(file);
+status.innerHTML = '<span class="text-success"><i class="bx bx-check-circle"></i> Photo mise à jour</span>';
+setTimeout(() => { status.style.display = 'none'; }, 3000);
+} else {
+status.innerHTML = '<span class="text-danger">Erreur lors du téléchargement</span>';
+}
+})
+.catch(() => {
+status.innerHTML = '<span class="text-danger">Erreur serveur</span>';
+});
+});
+</script>
+@endpush
 @endsection

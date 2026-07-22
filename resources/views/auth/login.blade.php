@@ -23,8 +23,24 @@
 </div>
 <div class="mb-4 position-relative">
 <i class="bx bx-lock position-absolute" style="left: 18px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.2rem;"></i>
-<input type="password" name="password" class="form-control" style="height: 52px; border-radius: 25px; padding-left: 45px;" placeholder="Mot de passe" required>
+<input type="password" name="password" id="loginPassword" class="form-control" style="height: 52px; border-radius: 25px; padding-left: 45px; padding-right: 45px;" placeholder="Mot de passe" required>
+<span onclick="togglePassword()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--gray-500);font-size:1.3rem;">
+<i class="bx bx-show" id="passwordToggleIcon"></i>
+</span>
 </div>
+<script>
+function togglePassword() {
+const input = document.getElementById('loginPassword');
+const icon = document.getElementById('passwordToggleIcon');
+if (input.type === 'password') {
+input.type = 'text';
+icon.className = 'bx bx-hide';
+} else {
+input.type = 'password';
+icon.className = 'bx bx-show';
+}
+}
+</script>
 <div class="d-flex justify-content-between align-items-center mb-4">
 <div class="form-check">
 <input class="form-check-input" type="checkbox" name="remember" id="remember">
