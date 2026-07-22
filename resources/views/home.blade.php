@@ -142,7 +142,6 @@
 const articlesGrid = document.getElementById('articlesGrid');
 const searchInput = document.getElementById('searchInput');
 let currentCategory = '';
-let siteUrl = '{{ config('app.url') }}';
 let currentSearch = '';
 let currentMinPrice = '';
 let currentMaxPrice = '';
@@ -164,7 +163,7 @@ if (reset) { currentPage = 1; allLoaded = false; }
 if (loading || allLoaded) return;
 loading = true;
 if (reset) { articlesGrid.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-muted" role="status"></div></div>'; }
-let url = siteUrl + `/search?search=${encodeURIComponent(currentSearch)}&category=${currentCategory}&page=${currentPage}&ajax=1`;
+let url = `/search?search=${encodeURIComponent(currentSearch)}&category=${currentCategory}&page=${currentPage}&ajax=1`;
 if (currentMinPrice) url += `&min_price=${encodeURIComponent(currentMinPrice)}`;
 if (currentMaxPrice) url += `&max_price=${encodeURIComponent(currentMaxPrice)}`;
 if (currentLocation) url += `&localisation=${encodeURIComponent(currentLocation)}`;
