@@ -519,12 +519,6 @@
                     <span class="brand">Seconde Main 224</span>
                 </a>
                 
-                <!-- Search Bar -->
-                <form class="w-100 mx-3" id="mobileSearchForm" style="max-width:400px;">
-                    <div class="input-group">
-                        <input type="search" name="search" id="mobileSearch" class="form-control" placeholder="Rechercher un article..." onkeyup="filterArticlesMobile()">
-                    </div>
-                </form>
                 
                 <!-- Burger -->
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -684,16 +678,6 @@
         }
     </script>
     <script>  
-        function filterArticlesMobile() {
-            if (document.getElementById('articlesGrid')) return;
-            let value = document.getElementById("mobileSearch").value.toLowerCase();
-            let articles = document.querySelectorAll(".article-card");
-            articles.forEach(card => {
-                let title = card.querySelector(".title")?.innerText.toLowerCase() || "";
-                card.style.display = title.includes(value) ? "block" : "none";
-            });
-        }
-        
         function copyLink(url) {
             navigator.clipboard.writeText(url).then(() => {
                 alert('Lien copié !');
