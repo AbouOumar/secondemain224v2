@@ -142,6 +142,7 @@
 const articlesGrid = document.getElementById('articlesGrid');
 const searchInput = document.getElementById('searchInput');
 let currentCategory = '';
+let siteUrl = '{{ config('app.url') }}';
 let currentSearch = '';
 let currentMinPrice = '';
 let currentMaxPrice = '';
@@ -163,18 +164,21 @@ if (reset) { currentPage = 1; allLoaded = false; }
 if (loading || allLoaded) return;
 loading = true;
 if (reset) { articlesGrid.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-muted" role="status"></div></div>'; }
-let url = `/search?search=${encodeURIComponent(currentSearch)}&category=${currentCategory}&page=${currentPage}&ajax=1`;
+let url = siteUrl + `/search?search=${encodeURIComponent(currentSearch)}&category=${currentCategory}&page=${currentPage}&ajax=1`;
 if (currentMinPrice) url += `&min_price=${encodeURIComponent(currentMinPrice)}`;
 if (currentMaxPrice) url += `&max_price=${encodeURIComponent(currentMaxPrice)}`;
 if (currentLocation) url += `&localisation=${encodeURIComponent(currentLocation)}`;
 fetch(url)
-.then(res => res.json())
+.then(res => {
+if (!res.ok) throw new Error('HTTP ' + res.status);
+return res.json();
+})
 .then(data => {
 renderArticles(data.html, !reset);
 allLoaded = !data.hasMore;
 currentPage++;
 loading = false;
-}).catch(() => { loading = false; });
+}).catch(e => { console.error('Filtres erreur:', e); loading = false; });
 }
 
 function selectCategory(catId) { currentCategory = catId; initialLoaded = false; loadArticles(true); }
