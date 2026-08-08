@@ -31,6 +31,7 @@ class DeliveryController extends Controller
     }
 
     public function pickup(Delivery $delivery) {
+        $this->authorize('complete', $delivery);
         $delivery->update([
             'status' => 'en_cours',
             'picked_up_at' => now(),
@@ -40,6 +41,15 @@ class DeliveryController extends Controller
 
     public function complete(Delivery $delivery) {
         $this->authorize('complete', $delivery);
+        $delivery->update([
+            'status' => 'livree',
+            'delivered_at' => now(),
+        ]);
+        return new DeliveryResource($delivery);
+    }
+
+    public function confirmReceipt(Delivery $delivery) {
+        $this->authorize('confirm', $delivery);
         $delivery->update([
             'status' => 'effectuee',
             'completed_at' => now(),

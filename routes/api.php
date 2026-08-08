@@ -59,6 +59,7 @@ Route::prefix('v1')->group(function () {
         Route::post('deliveries/{id}/accept', [DeliveryController::class, 'accept']);
         Route::post('deliveries/{id}/pickup', [DeliveryController::class, 'pickup']);
         Route::post('deliveries/{id}/complete', [DeliveryController::class, 'complete']);
+        Route::post('deliveries/{id}/confirm-receipt', [DeliveryController::class, 'confirmReceipt']);
         Route::post('deliveries/{id}/tracking', [DeliveryController::class, 'tracking']);
         Route::put('deliveries/status', [DeliveryController::class, 'setStatus']);
         Route::get('deliveries/history', [DeliveryController::class, 'history']);

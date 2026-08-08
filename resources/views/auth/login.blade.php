@@ -46,6 +46,7 @@ icon.className = 'bx bx-show';
 <input class="form-check-input" type="checkbox" name="remember" id="remember">
 <label class="form-check-label" for="remember">Se souvenir</label>
 </div>
+<a href="{{ route('password.request') }}" class="small">Mot de passe oublié ?</a>
 </div>
 <button type="submit" class="btn btn-primary w-100" style="border-radius: 25px; padding: 12px; font-weight: 600;">Se connecter</button>
 <hr class="my-4">

@@ -14,8 +14,8 @@
                 <div class="card-body">
                     <h6 class="fw-bold">{{ $delivery->order->article->titre }}</h6>
                     <p class="small text-muted mb-2">Réf: {{ $delivery->order->reference }}</p>
-                    <span class="badge fs-6 {{ $delivery->status->value === 'en_cours' ? 'bg-primary' : 'bg-warning text-dark' }}">
-                        {{ $delivery->status->value === 'en_cours' ? 'En cours' : 'Acceptée' }}
+                    <span class="badge fs-6 {{ $delivery->status->value === 'en_cours' ? 'bg-primary' : ($delivery->status->value === 'livree' ? 'bg-info' : 'bg-warning text-dark') }}">
+                        {{ $delivery->status->value === 'en_cours' ? 'En cours' : ($delivery->status->value === 'livree' ? 'Livrée - attente confirmation' : 'Acceptée') }}
                     </span>
                 </div>
             </div>
@@ -59,12 +59,16 @@
                         </button>
                     </form>
                     @elseif($delivery->status->value === 'en_cours')
-                    <form method="POST" action="{{ route('deliveries.complete', $delivery->id) }}">
+                    <form method="POST" action="{{ route('deliveries.delivered', $delivery->id) }}">
                         @csrf
                         <button type="submit" class="btn btn-success w-100">
-                            <i class='bx bx-check-circle'></i> Terminer la livraison
+                            <i class='bx bx-check-circle'></i> Marquer comme livré
                         </button>
                     </form>
+                    @elseif($delivery->status->value === 'livree')
+                    <div class="alert alert-info mb-0">
+                        <i class='bx bx-time'></i> Colis livré. En attente de confirmation du client pour finaliser l'opération.
+                    </div>
                     @endif
                 </div>
             </div>
@@ -73,14 +77,17 @@
                 <div class="card-body">
                     <h6 class="fw-bold mb-2">Parcours</h6>
                     <div id="statusSteps" class="small">
-                        <div class="d-flex align-items-center mb-2 {{ in_array($delivery->status->value, ['acceptee','en_cours','effectuee']) ? 'text-success' : 'text-muted' }}">
+                        <div class="d-flex align-items-center mb-2 {{ in_array($delivery->status->value, ['acceptee','en_cours','livree','effectuee']) ? 'text-success' : 'text-muted' }}">
                             <i class='bx bx-check-circle me-2'></i> Acceptée
                         </div>
-                        <div class="d-flex align-items-center mb-2 {{ $delivery->status->value === 'en_cours' || $delivery->status->value === 'effectuee' ? 'text-success' : 'text-muted' }}">
+                        <div class="d-flex align-items-center mb-2 {{ in_array($delivery->status->value, ['en_cours','livree','effectuee']) ? 'text-success' : 'text-muted' }}">
                             <i class='bx bx-check-circle me-2'></i> Colis récupéré
                         </div>
+                        <div class="d-flex align-items-center mb-2 {{ in_array($delivery->status->value, ['livree','effectuee']) ? 'text-success' : 'text-muted' }}">
+                            <i class='bx bx-check-circle me-2'></i> Livré
+                        </div>
                         <div class="d-flex align-items-center mb-2 {{ $delivery->status->value === 'effectuee' ? 'text-success' : 'text-muted' }}">
-                            <i class='bx bx-check-circle me-2'></i> Livrée
+                            <i class='bx bx-check-circle me-2'></i> Réception confirmée par le client
                         </div>
                     </div>
                 </div>

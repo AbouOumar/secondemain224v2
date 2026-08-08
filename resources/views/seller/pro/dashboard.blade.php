@@ -181,7 +181,7 @@
                                 </div>
                                 <div class="text-end">
                                     <span class="badge bg-{{ $order->status === 'livre' ? 'success' : ($order->status === 'paye' ? 'warning' : 'secondary') }}">{{ $order->status }}</span>
-                                    @if($order->delivery && in_array($order->delivery->status->value, ['acceptee', 'en_cours', 'effectuee']))
+                                    @if($order->delivery && in_array($order->delivery->status->value, ['acceptee', 'en_cours', 'livree', 'effectuee']))
                                         <a href="{{ route('deliveries.tracking', $order->delivery->id) }}" class="btn btn-sm btn-outline-info mt-1">
                                             <i class='bx bx-map'></i> Suivre
                                         </a>

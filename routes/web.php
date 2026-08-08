@@ -5,9 +5,17 @@ use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\ArticleController;
+use App\Http\Controllers\Web\ForgotPasswordController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [HomeController::class, 'search'])->name('search');
+
+Route::prefix('password')->name('password.')->group(function () {
+    Route::get('/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('request');
+    Route::post('/forgot', [ForgotPasswordController::class, 'sendResetLink'])->name('email');
+    Route::get('/reset/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('reset');
+    Route::post('/reset', [ForgotPasswordController::class, 'reset'])->name('store');
+});
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -40,11 +48,12 @@ Route::middleware('auth')->group(function () {
     });
 
     // Delivery routes for motard
-    Route::prefix('deliveries')->name('deliveries.')->middleware('role:motard')->group(function () {
-        Route::post('/{id}/accept', [\App\Http\Controllers\Web\MotardController::class, 'accept'])->name('accept');
-        Route::post('/{id}/pickup', [\App\Http\Controllers\Web\MotardController::class, 'pickup'])->name('pickup');
-        Route::post('/{id}/complete', [\App\Http\Controllers\Web\MotardController::class, 'complete'])->name('complete');
-        Route::post('/set-status', [\App\Http\Controllers\Web\MotardController::class, 'setStatus'])->name('setStatus');
+    Route::prefix('deliveries')->name('deliveries.')->group(function () {
+        Route::post('/{id}/accept', [\App\Http\Controllers\Web\MotardController::class, 'accept'])->middleware('role:motard')->name('accept');
+        Route::post('/{id}/pickup', [\App\Http\Controllers\Web\MotardController::class, 'pickup'])->middleware('role:motard')->name('pickup');
+        Route::post('/{id}/delivered', [\App\Http\Controllers\Web\MotardController::class, 'markDelivered'])->middleware('role:motard')->name('delivered');
+        Route::post('/{id}/confirm', [\App\Http\Controllers\Web\MotardController::class, 'confirmReceipt'])->name('confirm');
+        Route::post('/set-status', [\App\Http\Controllers\Web\MotardController::class, 'setStatus'])->middleware('role:motard')->name('setStatus');
     });
 
     // Seller Pro routes

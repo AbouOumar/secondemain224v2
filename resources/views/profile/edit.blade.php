@@ -37,7 +37,7 @@
 </div>
 <div>
 <input type="file" name="avatar" id="avatarInput" class="form-control" accept="image/*">
-<small class="text-muted">PNG, JPG. Max 2 Mo.</small>
+<small class="text-muted">PNG, JPG. Max 5 Mo.</small>
 <div id="avatarStatus" class="mt-1 small" style="display:none;"></div>
 </div>
 </div>
@@ -92,11 +92,20 @@ document.getElementById('avatarInput')?.addEventListener('change', function() {
 const file = this.files[0];
 if (!file) return;
 
+const status = document.getElementById('avatarStatus');
+const preview = document.getElementById('avatarPreview');
+
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5 Mo
+if (file.size > MAX_AVATAR_SIZE) {
+status.style.display = 'block';
+status.innerHTML = '<span class="text-danger"><i class="bx bx-error-circle"></i> L\'image dépasse 5 Mo. Veuillez choisir une image plus légère en volume.</span>';
+this.value = '';
+return;
+}
+
 const formData = new FormData();
 formData.append('avatar', file);
 
-const status = document.getElementById('avatarStatus');
-const preview = document.getElementById('avatarPreview');
 status.style.display = 'block';
 status.innerHTML = '<span class="text-primary"><i class="bx bx-loader-alt bx-spin"></i> Téléchargement...</span>';
 

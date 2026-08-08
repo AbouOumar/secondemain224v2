@@ -36,7 +36,11 @@ class ProfileController extends Controller
     }
 
     public function avatar(Request $request) {
-        $request->validate(['avatar' => 'required|image|mimes:jpeg,png,jpg|max:2048']);
+        $request->validate(['avatar' => 'required|image|mimes:jpeg,png,jpg|max:5120'], [
+            'avatar.image' => 'Le fichier sélectionné n\'est pas une image valide.',
+            'avatar.mimes' => 'Formats autorisés : JPG, PNG.',
+            'avatar.max' => 'L\'image dépasse la taille maximale autorisée (5 Mo). Veuillez choisir une image plus légère en volume.',
+        ]);
         $user = $request->user();
         if ($user->avatar) {
             Storage::disk('public')->delete($user->avatar);

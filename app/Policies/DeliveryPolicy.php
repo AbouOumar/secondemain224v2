@@ -19,4 +19,10 @@ class DeliveryPolicy
     {
         return $user->id === $delivery->rider_id && $delivery->status === 'en_cours';
     }
+
+    public function confirm(User $user, Delivery $delivery): bool
+    {
+        return ($user->id === $delivery->order->buyer_id || $user->role === 'admin')
+            && $delivery->status === 'livree';
+    }
 }

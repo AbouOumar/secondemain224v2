@@ -49,6 +49,11 @@ class ArticleController extends Controller
             'stock' => 'nullable|integer|min:0',
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+        ], [
+            'images.max' => 'Vous ne pouvez pas ajouter plus de 5 images.',
+            'images.*.max' => 'Une image dépasse la taille maximale autorisée (5 Mo). Veuillez choisir une image plus légère en volume.',
+            'images.*.image' => 'Le fichier sélectionné n\'est pas une image valide.',
+            'images.*.mimes' => 'Formats d\'image autorisés : JPG, PNG, WEBP.',
         ]);
 
         $article = Article::create([
@@ -100,6 +105,11 @@ class ArticleController extends Controller
             'stock' => 'nullable|integer|min:0',
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+        ], [
+            'images.max' => 'Vous ne pouvez pas ajouter plus de 5 images.',
+            'images.*.max' => 'Une image dépasse la taille maximale autorisée (5 Mo). Veuillez choisir une image plus légère en volume.',
+            'images.*.image' => 'Le fichier sélectionné n\'est pas une image valide.',
+            'images.*.mimes' => 'Formats d\'image autorisés : JPG, PNG, WEBP.',
         ]);
 
         $data = $request->only([

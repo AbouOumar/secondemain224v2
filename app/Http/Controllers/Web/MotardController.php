@@ -18,9 +18,9 @@ class MotardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get current assigned deliveries (status: acceptee or en_cours) for the motard
+        // Get current assigned deliveries for the motard (not yet confirmed by buyer)
         $currentDeliveries = Delivery::where('rider_id', auth()->id())
-            ->whereIn('status', ['acceptee', 'en_cours'])
+            ->whereIn('status', ['acceptee', 'en_cours', 'livree'])
             ->with(['order.article'])
             ->orderBy('updated_at', 'desc')
             ->get();
@@ -66,6 +66,11 @@ class MotardController extends Controller
     public function accept($id)
     {
         $delivery = Delivery::findOrFail($id);
+
+        if ($delivery->rider_id !== null && $delivery->rider_id !== auth()->id()) {
+            return back()->with('error', 'Cette livraison a déjà été acceptée par un autre livreur.');
+        }
+
         $delivery->update([
             'rider_id' => auth()->id(),
             'status' => 'acceptee',
@@ -78,6 +83,11 @@ class MotardController extends Controller
     public function pickup($id)
     {
         $delivery = Delivery::findOrFail($id);
+
+        if ($delivery->rider_id !== auth()->id()) {
+            abort(403);
+        }
+
         $delivery->update([
             'status' => 'en_cours',
             'picked_up_at' => now(),
@@ -85,14 +95,38 @@ class MotardController extends Controller
         return redirect()->back()->with('success', 'Colis récupéré.');
     }
 
-    public function complete($id)
+    public function markDelivered($id)
     {
         $delivery = Delivery::findOrFail($id);
+
+        if ($delivery->rider_id !== auth()->id() || $delivery->status !== 'en_cours') {
+            abort(403);
+        }
+
+        $delivery->update([
+            'status' => 'livree',
+            'delivered_at' => now(),
+        ]);
+        return redirect()->back()->with('success', 'Colis livré. En attente de confirmation du client.');
+    }
+
+    public function confirmReceipt($id)
+    {
+        $delivery = Delivery::findOrFail($id);
+
+        $user = auth()->user();
+        $isBuyer = $delivery->order->buyer_id === $user->id;
+        $isAdmin = $user->role?->value === 'admin';
+
+        if (!($isBuyer || $isAdmin) || $delivery->status !== 'livree') {
+            abort(403);
+        }
+
         $delivery->update([
             'status' => 'effectuee',
             'completed_at' => now(),
         ]);
         event(new DeliveryCompleted($delivery));
-        return redirect()->back()->with('success', 'Livraison terminée.');
+        return redirect()->back()->with('success', 'Réception confirmée. La livraison est terminée.');
     }
 }

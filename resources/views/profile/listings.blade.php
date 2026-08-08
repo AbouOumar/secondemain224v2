@@ -101,10 +101,11 @@
 <script>
 const listingsGrid = document.getElementById('listingsGrid');
 const listingsSearch = document.getElementById('listingsSearch');
+const listingsUrl = '{{ route('profile.listings') }}';
 
 listingsSearch.addEventListener('keyup', () => {
 const q = listingsSearch.value.trim();
-fetch(`/profile/listings?search=${encodeURIComponent(q)}&ajax=1`)
+fetch(listingsUrl + `?search=${encodeURIComponent(q)}&ajax=1`)
 .then(res => res.json())
 .then(data => {
 listingsGrid.innerHTML = data.html;

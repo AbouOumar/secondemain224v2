@@ -33,7 +33,7 @@ class VerificationController extends Controller
         $validator = Validator::make($request->all(), [
             'document_type' => 'required|string|in:id_card,passport,business_license,tax_document',
             'document' => 'required|file|max:5120', // 5MB max
-            'selfie' => 'required|file|max:2048', // 2MB max
+            'selfie' => 'required|file|max:5120', // 5MB max
         ]);
  
         if ($validator->fails()) {

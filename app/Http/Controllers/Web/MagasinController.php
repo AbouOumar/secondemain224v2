@@ -48,7 +48,7 @@ class MagasinController extends Controller
             'description' => 'nullable|string|max:2000',
             'adresse' => 'nullable|string|max:191',
             'telephone' => 'nullable|string|max:20',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'couverture' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'horaire' => 'nullable|string',
         ]);
@@ -91,7 +91,7 @@ class MagasinController extends Controller
             'description' => 'nullable|string|max:2000',
             'adresse' => 'nullable|string|max:191',
             'telephone' => 'nullable|string|max:20',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'couverture' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'horaire' => 'nullable|string',
         ]);

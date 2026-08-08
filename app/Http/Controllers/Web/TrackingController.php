@@ -20,7 +20,7 @@ class TrackingController extends Controller
             abort(403, 'Cette livraison ne vous est pas attribuée.');
         }
 
-        if (!in_array($delivery->status->value, ['acceptee', 'en_cours'])) {
+        if (!in_array($delivery->status->value, ['acceptee', 'en_cours', 'livree'])) {
             return redirect()->route('motard.dashboard')
                 ->with('error', 'Cette livraison n\'est pas en cours.');
         }

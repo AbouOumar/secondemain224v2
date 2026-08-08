@@ -23,6 +23,7 @@ class Delivery extends Model
         'status',
         'accepted_at',
         'picked_up_at',
+        'delivered_at',
         'completed_at',
         'tracking_json',
     ];
@@ -34,6 +35,7 @@ class Delivery extends Model
             'tracking_json' => 'array',
             'accepted_at' => 'datetime',
             'picked_up_at' => 'datetime',
+            'delivered_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
     }

@@ -19,6 +19,7 @@ class DeliveryResource extends JsonResource
             'prix' => (float) $this->prix,
             'status' => $this->status,
             'accepted_at' => $this->accepted_at,
+            'delivered_at' => $this->delivered_at,
             'completed_at' => $this->completed_at,
             'tracking' => $this->tracking_json,
             'created_at' => $this->created_at,

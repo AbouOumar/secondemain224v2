@@ -19,6 +19,7 @@
                             @case('en_attente') bg-secondary @break
                             @case('acceptee') bg-warning text-dark @break
                             @case('en_cours') bg-primary @break
+                            @case('livree') bg-info @break
                             @case('effectuee') bg-success @break
                             @default bg-secondary
                         @endswitch
@@ -27,6 +28,7 @@
                             @case('en_attente') En attente @break
                             @case('acceptee') Acceptée @break
                             @case('en_cours') En cours @break
+                            @case('livree') Livrée - attente de confirmation @break
                             @case('effectuee') Livrée @break
                             @default {{ $delivery->status->value }}
                         @endswitch
@@ -56,18 +58,36 @@
                 <div class="card-body">
                     <h6 class="fw-bold mb-2">Progression</h6>
                     <div id="statusSteps" class="small">
-                        <div class="d-flex align-items-center mb-2 {{ in_array($delivery->status->value, ['acceptee','en_cours','effectuee']) ? 'text-success' : 'text-muted' }}">
+                        <div class="d-flex align-items-center mb-2 {{ in_array($delivery->status->value, ['acceptee','en_cours','livree','effectuee']) ? 'text-success' : 'text-muted' }}">
                             <i class='bx bx-check-circle me-2'></i> Commande confirmée
                         </div>
-                        <div class="d-flex align-items-center mb-2 {{ in_array($delivery->status->value, ['en_cours','effectuee']) ? 'text-success' : 'text-muted' }}">
+                        <div class="d-flex align-items-center mb-2 {{ in_array($delivery->status->value, ['en_cours','livree','effectuee']) ? 'text-success' : 'text-muted' }}">
                             <i class='bx bx-check-circle me-2'></i> Colis récupéré
                         </div>
+                        <div class="d-flex align-items-center mb-2 {{ in_array($delivery->status->value, ['livree','effectuee']) ? 'text-success' : 'text-muted' }}">
+                            <i class='bx bx-check-circle me-2'></i> Livré
+                        </div>
                         <div class="d-flex align-items-center mb-2 {{ $delivery->status->value === 'effectuee' ? 'text-success' : 'text-muted' }}">
-                            <i class='bx bx-check-circle me-2'></i> Livrée
+                            <i class='bx bx-check-circle me-2'></i> Réception confirmée
                         </div>
                     </div>
                 </div>
             </div>
+
+            @if($isBuyer && $delivery->status->value === 'livree')
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body text-center">
+                    <h6 class="fw-bold mb-2">Avez-vous reçu votre colis ?</h6>
+                    <p class="small text-muted mb-3">Confirmez la réception pour finaliser l'opération.</p>
+                    <form method="POST" action="{{ route('deliveries.confirm', $delivery->id) }}" onsubmit="return confirm('Confirmez-vous avoir bien reçu votre colis ?');">
+                        @csrf
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class='bx bx-check-double'></i> Confirmer la réception
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endif
         </div>
 
         <div class="col-md-8 col-lg-9 p-0 position-relative">
@@ -193,6 +213,8 @@ function fetchTrack() {
                     if (data.status === 'acceptee' && i === 0) {
                         icon.closest('div').className = 'd-flex align-items-center mb-2 text-success';
                     } else if (data.status === 'en_cours' && i <= 1) {
+                        icon.closest('div').className = 'd-flex align-items-center mb-2 text-success';
+                    } else if (data.status === 'livree' && i <= 2) {
                         icon.closest('div').className = 'd-flex align-items-center mb-2 text-success';
                     } else if (data.status === 'effectuee') {
                         icon.closest('div').className = 'd-flex align-items-center mb-2 text-success';

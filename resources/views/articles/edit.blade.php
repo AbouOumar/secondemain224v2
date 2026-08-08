@@ -126,7 +126,7 @@
 <div class="image-upload-wrapper" style="border: 2px dashed #dee2e6; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #f8f9fa;" id="dropZone">
 	<i class="bx bx-cloud-upload" style="font-size: 2.5rem; color: #6c757d; display: block; margin-bottom: 10px;"></i>
 	<p class="mb-1 fw-bold" style="color: #495057;">Glissez vos photos ici ou cliquez pour sélectionner</p>
-	<small class="text-muted">JPG, PNG. Max 2 Mo par image.</small>
+	<small class="text-muted">JPG, PNG, WEBP. Max 5 Mo par image.</small>
 	<input type="file" id="imageInput" name="images[]" class="form-control form-control-lg" multiple accept="image/*" style="display: none;">
 </div>
 
@@ -162,6 +162,7 @@ const imageInput = document.getElementById('imageInput');
 const imagePreview = document.getElementById('imagePreview');
 const previewContainer = document.getElementById('previewContainer');
 const imageCount = document.getElementById('imageCount');
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 Mo
 
 // Handle drag and drop
 dropZone.addEventListener('dragover', (e) => {
@@ -189,6 +190,22 @@ dropZone.addEventListener('click', () => imageInput.click());
 
 imageInput.addEventListener('change', updateImagePreview);
 
+function clearImageWarning() {
+	const warn = document.getElementById('imageWarning');
+	if (warn) warn.remove();
+}
+
+function showImageWarning(message) {
+	let warn = document.getElementById('imageWarning');
+	if (!warn) {
+		warn = document.createElement('div');
+		warn.id = 'imageWarning';
+		warn.className = 'alert alert-danger py-2 small mt-2';
+		imagePreview.parentNode.insertBefore(warn, imagePreview.nextSibling);
+	}
+	warn.innerHTML = '<i class="bx bx-error-circle"></i> ' + message;
+}
+
 function updateImagePreview() {
 	const files = imageInput.files;
 	previewContainer.innerHTML = '';
@@ -196,13 +213,33 @@ function updateImagePreview() {
 	if (files.length === 0) {
 		imagePreview.style.display = 'none';
 		imageCount.textContent = '0';
+		clearImageWarning();
 		return;
 	}
   
+	const validFiles = [];
+	const oversized = [];
+	Array.from(files).forEach(file => {
+		if (file.size > MAX_IMAGE_SIZE) {
+			oversized.push(file);
+		} else {
+			validFiles.push(file);
+		}
+	});
+
+	if (oversized.length > 0) {
+		const newList = new DataTransfer();
+		validFiles.forEach(f => newList.items.add(f));
+		imageInput.files = newList.files;
+		showImageWarning(oversized.length + ' image(s) dépasse(nt) 5 Mo et a/ont été retirée(s). Veuillez choisir une image plus légère en volume.');
+	} else {
+		clearImageWarning();
+	}
+
 	imagePreview.style.display = 'block';
-	imageCount.textContent = files.length;
+	imageCount.textContent = imageInput.files.length;
   
-	Array.from(files).forEach((file, index) => {
+	Array.from(imageInput.files).forEach((file, index) => {
 		const reader = new FileReader();
 		reader.onload = (e) => {
 			const col = document.createElement('div');

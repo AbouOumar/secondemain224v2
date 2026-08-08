@@ -141,6 +141,8 @@
                                                 <span class="badge bg-warning text-dark fs-6">Acceptée</span>
                                             @elseif($delivery->status === 'en_cours')
                                                 <span class="badge bg-primary text-white fs-6">En cours</span>
+                                            @elseif($delivery->status === 'livree')
+                                                <span class="badge bg-info text-white fs-6">Livrée - attente confirmation client</span>
                                             @endif
                                         </div>
                                         <div class="text-end">
@@ -155,12 +157,14 @@
                                                     </button>
                                                 </form>
                                             @elseif($delivery->status === 'en_cours')
-                                                <form method="POST" action="{{ route('deliveries.complete', $delivery->id) }}" class="d-inline">
+                                                <form method="POST" action="{{ route('deliveries.delivered', $delivery->id) }}" class="d-inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-success btn-sm">
-                                                        Terminer la livraison
+                                                        Marquer comme livré
                                                     </button>
                                                 </form>
+                                            @elseif($delivery->status === 'livree')
+                                                <span class="badge bg-secondary text-white fs-6">En attente de confirmation du client</span>
                                             @endif
                                         </div>
                                     </div>
