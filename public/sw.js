@@ -1,5 +1,5 @@
 // Service Worker for Seconde Main 224 PWA
-const CACHE_NAME = 'seconde-main-224-v2';
+const CACHE_NAME = 'seconde-main-224-v3';
 const ASSETS_TO_CACHE = [
   '/assets/img/icon.png',
   '/assets/img/logo.png',
@@ -39,6 +39,14 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  // Never intercept non-GET requests (form POSTs, DELETE, etc.) — the Cache API
+  // can't store them (method !== GET) and intercepting POST navigations (login,
+  // register, checkout...) causes undefined/broken behaviour across browsers.
+  // Let the browser handle these natively.
+  if (event.request.method !== 'GET') {
     return;
   }
 
