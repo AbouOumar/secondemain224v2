@@ -13,7 +13,7 @@ class DashboardController extends Controller
             'total_users' => User::count(),
             'total_articles' => Article::count(),
             'total_orders' => Order::count(),
-            'total_revenue' => Payment::where('status', 'complete')->sum('montant'),
+            'total_revenue' => Payment::where('status', 'succes')->sum('montant'),
             'users_by_role' => User::selectRaw('role, count(*) as count')->groupBy('role')->get(),
             'articles_by_category' => Article::selectRaw('category_id, count(*) as count')
                 ->groupBy('category_id')->with('category:id,libelle')->get(),

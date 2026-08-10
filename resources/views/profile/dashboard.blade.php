@@ -136,7 +136,7 @@
 <tr>
 <td>{{ $order->reference }}</td>
 <td>{{ $order->article->titre ?? '—' }}</td>
-<td><span class="badge bg-{{ $order->status === 'livre' ? 'success' : ($order->status === 'paye' ? 'warning' : 'secondary') }}">{{ $order->status }}</span></td>
+<td><span class="badge bg-{{ $order->status->value === 'livre' ? 'success' : ($order->status->value === 'paye' ? 'warning' : 'secondary') }}">{{ $order->status->value }}</span></td>
 <td>{{ number_format($order->total, 0, ',', ' ') }} GNF</td>
 <td>{{ $order->created_at->format('d/m/Y') }}</td>
 </tr>

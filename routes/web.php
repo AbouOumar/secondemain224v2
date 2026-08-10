@@ -120,3 +120,46 @@ Route::middleware('auth')->group(function () {
     Route::get('/livraison/{id}/suivi', [\App\Http\Controllers\Web\TrackingController::class, 'publicTracking'])->name('deliveries.tracking');
     Route::get('/livraison/{id}/track', [\App\Http\Controllers\Web\TrackingController::class, 'getTrack'])->name('deliveries.track');
 });
+
+// Admin panel (Blade)
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Web\Admin\DashboardController::class, 'index'])->name('dashboard');
+
+    Route::prefix('utilisateurs')->name('users.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\UserController::class, 'index'])->name('index');
+        Route::get('/{user}', [\App\Http\Controllers\Web\Admin\UserController::class, 'show'])->name('show');
+        Route::post('/{user}/suspendre', [\App\Http\Controllers\Web\Admin\UserController::class, 'suspend'])->name('suspend');
+        Route::post('/{user}/activer', [\App\Http\Controllers\Web\Admin\UserController::class, 'activate'])->name('activate');
+        Route::delete('/{user}', [\App\Http\Controllers\Web\Admin\UserController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('annonces')->name('articles.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\ArticleModerationController::class, 'index'])->name('index');
+        Route::post('/{article}/valider', [\App\Http\Controllers\Web\Admin\ArticleModerationController::class, 'verify'])->name('verify');
+        Route::post('/{article}/rejeter', [\App\Http\Controllers\Web\Admin\ArticleModerationController::class, 'reject'])->name('reject');
+    });
+
+    Route::prefix('categories')->name('categories.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\CategoryController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Web\Admin\CategoryController::class, 'store'])->name('store');
+        Route::put('/{category}', [\App\Http\Controllers\Web\Admin\CategoryController::class, 'update'])->name('update');
+        Route::delete('/{category}', [\App\Http\Controllers\Web\Admin\CategoryController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('paiements')->name('payments.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'index'])->name('index');
+        Route::get('/{payment}', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'show'])->name('show');
+    });
+
+    Route::prefix('partenaires')->name('partners.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'index'])->name('index');
+        Route::post('/{partner}/verifier', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'verify'])->name('verify');
+        Route::post('/{partner}/devalider', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'unverify'])->name('unverify');
+        Route::delete('/{partner}', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('livraisons')->name('deliveries.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\DeliveryController::class, 'index'])->name('index');
+        Route::put('/{delivery}', [\App\Http\Controllers\Web\Admin\DeliveryController::class, 'update'])->name('update');
+    });
+});

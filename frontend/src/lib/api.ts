@@ -71,6 +71,20 @@ export function clearToken(): void {
   window.localStorage.removeItem(TOKEN_KEY);
 }
 
+/**
+ * Revoke the current access token server-side, then clear it locally
+ * regardless of whether the API call succeeds (e.g. token already expired).
+ */
+export async function logout(): Promise<void> {
+  try {
+    await apiFetch("/auth/logout", { method: "POST" });
+  } catch {
+    // Token may already be invalid/expired — clearing it locally is enough.
+  } finally {
+    clearToken();
+  }
+}
+
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers = new Headers(init.headers);

@@ -554,7 +554,7 @@
                         @endif
                         @if($role === 'admin')
                         <li class="nav-item">
-                            <a class="nav-link px-3" href="{{ url('/v1/admin/dashboard') }}">Admin</a>
+                            <a class="nav-link px-3" href="{{ route('admin.dashboard') }}">Admin</a>
                         </li>
                         @endif
                         <li class="nav-item">

@@ -12,7 +12,10 @@ class RoleMiddleware
         $roleValue = $role instanceof \BackedEnum ? $role->value : $role;
 
         if (!in_array($roleValue, $roles, true)) {
-            return response()->json(['message' => 'Accès non autorisé.'], 403);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Accès non autorisé.'], 403);
+            }
+            abort(403, 'Accès non autorisé.');
         }
         return $next($request);
     }

@@ -9,6 +9,9 @@ class StoreOrderRequest extends FormRequest
         return [
             'article_id' => 'required|exists:articles,id',
             'with_delivery' => 'nullable|boolean',
+            'delivery_adresse' => 'nullable|string|max:255',
+            'delivery_latitude' => 'nullable|numeric|between:-90,90',
+            'delivery_longitude' => 'nullable|numeric|between:-180,180',
         ];
     }
 }

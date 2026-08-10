@@ -13,6 +13,8 @@ class StoreArticleRequest extends FormRequest
             'currency' => 'nullable|string|max:10',
             'category_id' => 'required|exists:categories,id',
             'stock' => 'nullable|integer|min:0',
+            'colors' => 'nullable|array|max:6',
+            'colors.*' => 'required|string',
             'etat' => 'nullable|string|in:neuf,tres_bon,bon,moyen',
             'annee' => 'nullable|integer|min:1900|max:'.date('Y'),
             'localisation' => 'required|string|max:191',

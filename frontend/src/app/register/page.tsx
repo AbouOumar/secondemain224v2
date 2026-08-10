@@ -10,16 +10,30 @@ type RegisterResponse = {
   token: string;
 };
 
+const COUNTRY_CODES = [
+  { code: "+224", flag: "🇬🇳", label: "Guinée" },
+  { code: "+221", flag: "🇸🇳", label: "Sénégal" },
+  { code: "+223", flag: "🇲🇱", label: "Mali" },
+  { code: "+225", flag: "🇨🇮", label: "Côte d'Ivoire" },
+  { code: "+232", flag: "🇸🇱", label: "Sierra Leone" },
+  { code: "+231", flag: "🇱🇷", label: "Liberia" },
+  { code: "+245", flag: "🇬🇼", label: "Guinée-Bissau" },
+  { code: "+33", flag: "🇫🇷", label: "France" },
+];
+
 export default function RegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
     password: "",
     password_confirmation: "",
     role: "acheteur",
   });
+  const [phoneCode, setPhoneCode] = useState(COUNTRY_CODES[0].code);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -31,7 +45,10 @@ export default function RegisterPage() {
     try {
       const response = await apiFetch<RegisterResponse>("/auth/register", {
         method: "POST",
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          phone: phoneNumber ? `${phoneCode}${phoneNumber.replace(/\s+/g, "")}` : "",
+        }),
       });
 
       setToken(response.token);
@@ -71,15 +88,28 @@ export default function RegisterPage() {
           />
           {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
 
-          <input
-            type="tel"
-            name="phone"
-            required
-            value={formData.phone}
-            onChange={(event) => setFormData({ ...formData, phone: event.target.value })}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
-            placeholder="+224 6XX XX XX XX"
-          />
+          <div className="flex gap-2">
+            <select
+              value={phoneCode}
+              onChange={(event) => setPhoneCode(event.target.value)}
+              className="rounded-md border border-gray-300 px-2 py-2 text-gray-900"
+              aria-label="Indicatif pays"
+            >
+              {COUNTRY_CODES.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.flag} {country.code}
+                </option>
+              ))}
+            </select>
+            <input
+              type="tel"
+              required
+              value={phoneNumber}
+              onChange={(event) => setPhoneNumber(event.target.value)}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
+              placeholder="6XX XX XX XX"
+            />
+          </div>
           {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
 
           <select
@@ -94,24 +124,44 @@ export default function RegisterPage() {
             <option value="motard">Motard</option>
           </select>
 
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={(event) => setFormData({ ...formData, password: event.target.value })}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
-            placeholder="Mot de passe, min. 8 caractères"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={formData.password}
+              onChange={(event) => setFormData({ ...formData, password: event.target.value })}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-gray-900"
+              placeholder="Mot de passe, min. 8 caractères"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((current) => !current)}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+              aria-label="Afficher/masquer le mot de passe"
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
           {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
 
-          <input
-            type="password"
-            name="password_confirmation"
-            value={formData.password_confirmation}
-            onChange={(event) => setFormData({ ...formData, password_confirmation: event.target.value })}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
-            placeholder="Confirmer le mot de passe"
-          />
+          <div className="relative">
+            <input
+              type={showPasswordConfirmation ? "text" : "password"}
+              name="password_confirmation"
+              value={formData.password_confirmation}
+              onChange={(event) => setFormData({ ...formData, password_confirmation: event.target.value })}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-gray-900"
+              placeholder="Confirmer le mot de passe"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPasswordConfirmation((current) => !current)}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+              aria-label="Afficher/masquer le mot de passe"
+            >
+              {showPasswordConfirmation ? "🙈" : "👁️"}
+            </button>
+          </div>
           {errors.password_confirmation && <p className="text-sm text-red-600">{errors.password_confirmation}</p>}
           {errors.submit && <p className="text-sm text-red-600">{errors.submit}</p>}
 

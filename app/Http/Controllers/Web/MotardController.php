@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Events\DeliveryAccepted;
+use App\Events\DeliveryDelivered;
 use App\Events\DeliveryCompleted;
 use Illuminate\Http\Request;
 
@@ -99,7 +100,7 @@ class MotardController extends Controller
     {
         $delivery = Delivery::findOrFail($id);
 
-        if ($delivery->rider_id !== auth()->id() || $delivery->status !== 'en_cours') {
+        if ($delivery->rider_id !== auth()->id() || $delivery->status->value !== 'en_cours') {
             abort(403);
         }
 
@@ -107,6 +108,7 @@ class MotardController extends Controller
             'status' => 'livree',
             'delivered_at' => now(),
         ]);
+        event(new DeliveryDelivered($delivery));
         return redirect()->back()->with('success', 'Colis livré. En attente de confirmation du client.');
     }
 
@@ -118,7 +120,7 @@ class MotardController extends Controller
         $isBuyer = $delivery->order->buyer_id === $user->id;
         $isAdmin = $user->role?->value === 'admin';
 
-        if (!($isBuyer || $isAdmin) || $delivery->status !== 'livree') {
+        if (!($isBuyer || $isAdmin) || $delivery->status->value !== 'livree') {
             abort(403);
         }
 
@@ -126,6 +128,11 @@ class MotardController extends Controller
             'status' => 'effectuee',
             'completed_at' => now(),
         ]);
+
+        if ($delivery->order && $delivery->order->status->value !== 'livre') {
+            $delivery->order->update(['status' => 'livre']);
+        }
+
         event(new DeliveryCompleted($delivery));
         return redirect()->back()->with('success', 'Réception confirmée. La livraison est terminée.');
     }

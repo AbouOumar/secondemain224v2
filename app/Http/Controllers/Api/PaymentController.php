@@ -170,7 +170,7 @@ class PaymentController extends Controller
         $payment = Payment::where('external_ref', $result['external_ref'])->first();
         if ($payment) {
             $payment->update([
-                'status' => $result['status'] === 'success' ? 'complete' : 'echoue',
+                'status' => $result['status'] === 'success' ? 'succes' : 'echoue',
                 'paid_at' => $result['status'] === 'success' ? now() : null,
                 'external_data' => $request->all(),
             ]);
@@ -186,7 +186,7 @@ class PaymentController extends Controller
         $payment = Payment::where('external_ref', $result['external_ref'])->first();
         if ($payment) {
             $payment->update([
-                'status' => $result['status'] === 'success' ? 'complete' : 'echoue',
+                'status' => $result['status'] === 'success' ? 'succes' : 'echoue',
                 'paid_at' => $result['status'] === 'success' ? now() : null,
                 'external_data' => $request->all(),
             ]);

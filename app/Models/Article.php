@@ -21,6 +21,7 @@ class Article extends Model
         'prix',
         'currency',
         'stock',
+        'colors',
         'etat',
         'annee',
         'localisation',
@@ -31,6 +32,7 @@ class Article extends Model
         'is_boosted',
         'boosted_until',
         'is_verified',
+        'rejection_raison',
         'is_published',
         'statut',
         'date_fin',
@@ -52,6 +54,7 @@ class Article extends Model
         return [
             'currency' => ArticleCurrency::class,
             'etat' => ArticleEtat::class,
+            'colors' => 'array',
             'with_delivery' => 'boolean',
             'is_boosted' => 'boolean',
             'is_verified' => 'boolean',

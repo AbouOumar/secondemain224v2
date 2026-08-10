@@ -61,6 +61,7 @@ class ArticleController extends Controller
             'prix' => $request->prix,
             'currency' => $request->currency ?? 'GNF',
             'stock' => $request->stock ?? 1,
+            'colors' => $this->sanitizeColors($request->colors),
             'etat' => $request->etat,
             'annee' => $request->annee,
             'localisation' => $request->localisation,
@@ -88,8 +89,12 @@ class ArticleController extends Controller
         $this->authorize('update', $article);
 
         $data = $request->validated();
+        unset($data['colors']);
         if ($request->filled('titre')) {
             $data['slug'] = Str::slug($request->titre).'-'.Str::random(6);
+        }
+        if ($request->has('colors')) {
+            $data['colors'] = $this->sanitizeColors($request->colors);
         }
         $article->update($data);
 
@@ -173,7 +178,7 @@ class ArticleController extends Controller
         // Articles en stock (pour les revendeurs pros)
         $articlesEnStock = 0;
         $articlesRuptureStock = 0;
-        if ($request->user()->role === 'revendeur_pro') {
+        if ($request->user()->role?->value === 'revendeur_pro') {
             $articlesEnStock = Article::where('user_id', $userId)
                 ->where('stock', '>', 0)
                 ->count();
@@ -195,5 +200,19 @@ class ArticleController extends Controller
             'articles_rupture_stock' => $articlesRuptureStock,
             'par_categorie' => $articlesParCategorie,
         ]);
+    }
+
+    private function sanitizeColors($colors): ?array
+    {
+        if (!is_array($colors) || empty($colors)) {
+            return null;
+        }
+
+        $valid = \App\Enums\ProductColor::values();
+
+        $normalized = array_map('strtolower', $colors);
+        $filtered = array_values(array_filter($normalized, fn ($color) => in_array($color, $valid, true)));
+
+        return $filtered === [] ? null : array_slice(array_unique($filtered), 0, 6);
     }
 }

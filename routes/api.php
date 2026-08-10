@@ -1,6 +1,7 @@
 <?php
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\LoginController;
+use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\ArticleController;
@@ -33,17 +34,19 @@ Route::prefix('v1')->group(function () {
     Route::get('partners', [PartnerController::class, 'index']);
     Route::get('partners/{slug}', [PartnerController::class, 'show']);
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('auth/logout', [LogoutController::class, 'store']);
+        Route::post('auth/logout-all', [LogoutController::class, 'destroyAll']);
         Route::get('profile', [ProfileController::class, 'show']);
         Route::put('profile', [ProfileController::class, 'update']);
         Route::post('profile/avatar', [ProfileController::class, 'avatar']);
         Route::get('profile/saved-articles', [ProfileController::class, 'saved']);
         Route::post('articles', [ArticleController::class, 'store']);
-        Route::put('articles/{id}', [ArticleController::class, 'update']);
-        Route::delete('articles/{id}', [ArticleController::class, 'destroy']);
-        Route::post('articles/{id}/boost', [BoostController::class, 'store']);
+        Route::put('articles/{article}', [ArticleController::class, 'update']);
+        Route::delete('articles/{article}', [ArticleController::class, 'destroy']);
+        Route::post('articles/{article}/boost', [BoostController::class, 'store']);
         Route::get('boost/pricing', [BoostController::class, 'pricing']);
-        Route::post('articles/{id}/saved', [ArticleController::class, 'toggleSave']);
-        Route::get('articles/{id}/saved-status', [ArticleController::class, 'checkSave']);
+        Route::post('articles/{article}/saved', [ArticleController::class, 'toggleSave']);
+        Route::get('articles/{article}/saved-status', [ArticleController::class, 'checkSave']);
         Route::get('seller/articles', [ArticleController::class, 'myArticles']);
         Route::get('seller/stats', [ArticleController::class, 'stats']);
         Route::post('orders', [OrderController::class, 'store']);
@@ -56,22 +59,22 @@ Route::prefix('v1')->group(function () {
         Route::get('wallet', [WalletController::class, 'show']);
         Route::get('wallet/transactions', [WalletController::class, 'transactions']);
         Route::get('deliveries/available', [DeliveryController::class, 'available']);
-        Route::post('deliveries/{id}/accept', [DeliveryController::class, 'accept']);
-        Route::post('deliveries/{id}/pickup', [DeliveryController::class, 'pickup']);
-        Route::post('deliveries/{id}/complete', [DeliveryController::class, 'complete']);
-        Route::post('deliveries/{id}/confirm-receipt', [DeliveryController::class, 'confirmReceipt']);
-        Route::post('deliveries/{id}/tracking', [DeliveryController::class, 'tracking']);
+        Route::post('deliveries/{delivery}/accept', [DeliveryController::class, 'accept']);
+        Route::post('deliveries/{delivery}/pickup', [DeliveryController::class, 'pickup']);
+        Route::post('deliveries/{delivery}/complete', [DeliveryController::class, 'complete']);
+        Route::post('deliveries/{delivery}/confirm-receipt', [DeliveryController::class, 'confirmReceipt']);
+        Route::post('deliveries/{delivery}/tracking', [DeliveryController::class, 'tracking']);
         Route::put('deliveries/status', [DeliveryController::class, 'setStatus']);
         Route::get('deliveries/history', [DeliveryController::class, 'history']);
         Route::get('messages/conversations', [MessageController::class, 'conversations']);
         Route::get('messages/{user}', [MessageController::class, 'index']);
         Route::post('messages/{user}', [MessageController::class, 'store']);
-        Route::put('messages/{id}/read', [MessageController::class, 'markRead']);
+        Route::put('messages/{message}/read', [MessageController::class, 'markRead']);
         Route::get('notifications', [NotificationController::class, 'index']);
-        Route::put('notifications/{id}/read', [NotificationController::class, 'markRead']);
+        Route::put('notifications/{notification}/read', [NotificationController::class, 'markRead']);
         Route::put('notifications/read-all', [NotificationController::class, 'markAllRead']);
         Route::post('ratings', [RatingController::class, 'store']);
-        Route::get('users/{id}/ratings', [RatingController::class, 'userRatings']);
+        Route::get('users/{user}/ratings', [RatingController::class, 'userRatings']);
 
         Route::prefix('verification')->group(function () {
             Route::get('status', [App\Http\Controllers\Api\VerificationController::class, 'status'])->name('api.verification.status');

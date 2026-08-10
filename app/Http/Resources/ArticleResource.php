@@ -16,6 +16,7 @@ class ArticleResource extends JsonResource
             'prix' => (float) $this->prix,
             'currency' => $this->currency,
             'stock' => $this->stock,
+            'colors' => $this->colors,
             'etat' => $this->etat,
             'annee' => $this->annee,
             'localisation' => $this->localisation,

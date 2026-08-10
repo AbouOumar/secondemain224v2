@@ -24,6 +24,17 @@ class OrderController extends Controller
         if ($request->with_delivery && $article->with_delivery) {
             $deliveryPrix = $article->delivery_prix ?? 0;
             $total += $deliveryPrix;
+
+            $deliveryAdresse = $request->delivery_adresse ?? $request->user()->localisation;
+            $deliveryLatitude = $request->delivery_latitude ?? $request->user()->latitude;
+            $deliveryLongitude = $request->delivery_longitude ?? $request->user()->longitude;
+
+            if (! $deliveryAdresse) {
+                return response()->json([
+                    'message' => 'Une adresse de livraison est requise.',
+                    'errors' => ['delivery_adresse' => ['Veuillez indiquer une adresse de livraison.']],
+                ], 422);
+            }
         }
 
         $order = Order::create([
@@ -44,9 +55,9 @@ class OrderController extends Controller
                 'pickup_adresse' => $article->localisation,
                 'pickup_latitude' => $article->latitude,
                 'pickup_longitude' => $article->longitude,
-                'delivery_adresse' => $request->user()->localisation ?? '',
-                'delivery_latitude' => $request->user()->latitude,
-                'delivery_longitude' => $request->user()->longitude,
+                'delivery_adresse' => $deliveryAdresse,
+                'delivery_latitude' => $deliveryLatitude,
+                'delivery_longitude' => $deliveryLongitude,
                 'prix' => $deliveryPrix,
                 'status' => 'en_attente',
             ]);

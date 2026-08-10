@@ -9,7 +9,7 @@ class PaymentProcessingService
     {
         $order = $payment->order;
 
-        if ($order->status === 'paye') {
+        if ($order->status->value === 'paye') {
             return;
         }
 

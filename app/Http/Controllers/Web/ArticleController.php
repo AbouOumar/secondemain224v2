@@ -47,14 +47,19 @@ class ArticleController extends Controller
             'etat' => 'nullable|string',
             'with_delivery' => 'nullable|boolean',
             'stock' => 'nullable|integer|min:0',
+            'colors' => 'nullable|array|max:6',
+            'colors.*' => 'required|string',
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ], [
+            'colors.max' => 'Vous ne pouvez pas sélectionner plus de 6 couleurs.',
             'images.max' => 'Vous ne pouvez pas ajouter plus de 5 images.',
             'images.*.max' => 'Une image dépasse la taille maximale autorisée (5 Mo). Veuillez choisir une image plus légère en volume.',
             'images.*.image' => 'Le fichier sélectionné n\'est pas une image valide.',
             'images.*.mimes' => 'Formats d\'image autorisés : JPG, PNG, WEBP.',
         ]);
+
+        $colors = $this->sanitizeColors($request->colors);
 
         $article = Article::create([
             'user_id' => Auth::id(),
@@ -71,6 +76,7 @@ class ArticleController extends Controller
             'is_published' => true,
             'statut' => 'en_vente',
             'stock' => $request->stock ?? 1,
+            'colors' => $colors,
         ]);
 
         if ($request->hasFile('images')) {
@@ -103,9 +109,12 @@ class ArticleController extends Controller
             'category_id' => 'required|exists:categories,id',
             'localisation' => 'required|string|max:191',
             'stock' => 'nullable|integer|min:0',
+            'colors' => 'nullable|array|max:6',
+            'colors.*' => 'required|string',
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ], [
+            'colors.max' => 'Vous ne pouvez pas sélectionner plus de 6 couleurs.',
             'images.max' => 'Vous ne pouvez pas ajouter plus de 5 images.',
             'images.*.max' => 'Une image dépasse la taille maximale autorisée (5 Mo). Veuillez choisir une image plus légère en volume.',
             'images.*.image' => 'Le fichier sélectionné n\'est pas une image valide.',
@@ -117,6 +126,7 @@ class ArticleController extends Controller
             'localisation', 'etat', 'with_delivery', 'stock'
         ]);
         $data['delivery_prix'] = $request->delivery_price;
+        $data['colors'] = $this->sanitizeColors($request->colors);
         $article->update($data);
 
         // Delete specific images if requested
@@ -164,8 +174,7 @@ class ArticleController extends Controller
     }
 
     public function boost(Request $request, Article $article, BoostService $boostService)
-    {
-        if ($article->user_id !== Auth::id()) {
+    {        if ($article->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -182,5 +191,19 @@ class ArticleController extends Controller
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    private function sanitizeColors($colors): ?array
+    {
+        if (!is_array($colors) || empty($colors)) {
+            return null;
+        }
+
+        $valid = \App\Enums\ProductColor::values();
+
+        $normalized = array_map('strtolower', $colors);
+        $filtered = array_values(array_filter($normalized, fn ($color) => in_array($color, $valid, true)));
+
+        return $filtered === [] ? null : array_slice(array_unique($filtered), 0, 6);
     }
 }

@@ -3,6 +3,7 @@ namespace App\Providers;
 use App\Events\OrderCreated;
 use App\Events\DeliveryAssigned;
 use App\Events\DeliveryAccepted;
+use App\Events\DeliveryDelivered;
 use App\Events\DeliveryCompleted;
 use App\Events\MessageSent;
 use App\Events\PaymentReceived;
@@ -11,6 +12,7 @@ use App\Listeners\NotifySellerOfNewOrder;
 use App\Listeners\NotifyNearbyRiders;
 use App\Listeners\NotifyRiderOfAssignment;
 use App\Listeners\NotifyBuyerOfDeliveryComplete;
+use App\Listeners\NotifyBuyerOfDeliveryDelivered;
 use App\Listeners\UpdateRiderTracking;
 use App\Listeners\NotifySellerOfDeliveryAccepted;
 use App\Listeners\BroadcastMessage;
@@ -31,6 +33,9 @@ class EventServiceProvider extends ServiceProvider
         DeliveryAccepted::class => [
             UpdateRiderTracking::class,
             NotifySellerOfDeliveryAccepted::class,
+        ],
+        DeliveryDelivered::class => [
+            NotifyBuyerOfDeliveryDelivered::class,
         ],
         DeliveryCompleted::class => [
             NotifyBuyerOfDeliveryComplete::class,

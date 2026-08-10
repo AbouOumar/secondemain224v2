@@ -12,7 +12,7 @@ class AuthController extends Controller
     protected function redirectByRole()
     {
         return match (Auth::user()->role?->value) {
-            'admin' => redirect()->intended('/v1/admin/dashboard'),
+            'admin' => redirect()->intended(route('admin.dashboard')),
             'revendeur_pro' => redirect()->intended('/seller/pro/tableau-de-bord'),
             'motard' => redirect()->intended('/motard/tableau-de-bord'),
             'vendeur' => redirect()->intended('/profile/listings'),

@@ -9,3 +9,9 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('boosts:expire')->everyMinute();
+
+// Hébergement mutualisé : pas de worker de queue permanent possible.
+// Le scheduler (déclenché par le cron LWS) traite la file toutes les minutes.
+Schedule::command('queue:work --stop-when-empty --tries=3 --max-time=50')
+    ->everyMinute()
+    ->withoutOverlapping();

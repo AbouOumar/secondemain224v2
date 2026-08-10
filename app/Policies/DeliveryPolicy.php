@@ -7,22 +7,22 @@ class DeliveryPolicy
 {
     public function view(User $user, Delivery $delivery): bool
     {
-        return $user->id === $delivery->rider_id || $user->id === $delivery->order->buyer_id || $user->role === 'admin';
+        return $user->id === $delivery->rider_id || $user->id === $delivery->order->buyer_id || $user->role?->value === 'admin';
     }
 
     public function accept(User $user, Delivery $delivery): bool
     {
-        return $user->id === $delivery->rider_id && $delivery->status === 'assignee';
+        return $user->id === $delivery->rider_id && $delivery->status->value === 'assignee';
     }
 
     public function complete(User $user, Delivery $delivery): bool
     {
-        return $user->id === $delivery->rider_id && $delivery->status === 'en_cours';
+        return $user->id === $delivery->rider_id && $delivery->status->value === 'en_cours';
     }
 
     public function confirm(User $user, Delivery $delivery): bool
     {
         return ($user->id === $delivery->order->buyer_id || $user->role === 'admin')
-            && $delivery->status === 'livree';
+            && $delivery->status->value === 'livree';
     }
 }

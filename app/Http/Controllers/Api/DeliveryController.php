@@ -6,6 +6,7 @@ use App\Http\Resources\DeliveryResource;
 use Illuminate\Http\Request;
 use App\Services\Delivery\TrackingService;
 use App\Events\DeliveryAccepted;
+use App\Events\DeliveryDelivered;
 use App\Events\DeliveryCompleted;
 
 class DeliveryController extends Controller
@@ -45,6 +46,7 @@ class DeliveryController extends Controller
             'status' => 'livree',
             'delivered_at' => now(),
         ]);
+        event(new DeliveryDelivered($delivery));
         return new DeliveryResource($delivery);
     }
 
@@ -54,6 +56,9 @@ class DeliveryController extends Controller
             'status' => 'effectuee',
             'completed_at' => now(),
         ]);
+        if ($delivery->order && $delivery->order->status->value !== 'livre') {
+            $delivery->order->update(['status' => 'livre']);
+        }
         event(new DeliveryCompleted($delivery));
         return new DeliveryResource($delivery);
     }

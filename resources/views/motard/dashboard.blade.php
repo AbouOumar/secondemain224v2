@@ -137,11 +137,11 @@
                                                 De : {{ $delivery->order->buyer->name ?? 'Client' }}<br>
                                                 À : {{ $delivery->order->seller->name ?? 'Vendeur' }}
                                             </p>
-                                            @if($delivery->status === 'acceptee')
+                                            @if($delivery->status->value === 'acceptee')
                                                 <span class="badge bg-warning text-dark fs-6">Acceptée</span>
-                                            @elseif($delivery->status === 'en_cours')
+                                            @elseif($delivery->status->value === 'en_cours')
                                                 <span class="badge bg-primary text-white fs-6">En cours</span>
-                                            @elseif($delivery->status === 'livree')
+                                            @elseif($delivery->status->value === 'livree')
                                                 <span class="badge bg-info text-white fs-6">Livrée - attente confirmation client</span>
                                             @endif
                                         </div>
@@ -149,21 +149,21 @@
                                             <a href="{{ route('motard.tracking', $delivery->id) }}" class="btn btn-outline-info btn-sm mb-1">
                                                 <i class='bx bx-map'></i> Suivi
                                             </a>
-                                            @if($delivery->status === 'acceptee')
+                                            @if($delivery->status->value === 'acceptee')
                                                 <form method="POST" action="{{ route('deliveries.pickup', $delivery->id) }}" class="d-inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-primary btn-sm">
                                                         Marquer comme récupéré
                                                     </button>
                                                 </form>
-                                            @elseif($delivery->status === 'en_cours')
+                                            @elseif($delivery->status->value === 'en_cours')
                                                 <form method="POST" action="{{ route('deliveries.delivered', $delivery->id) }}" class="d-inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-success btn-sm">
                                                         Marquer comme livré
                                                     </button>
                                                 </form>
-                                            @elseif($delivery->status === 'livree')
+                                            @elseif($delivery->status->value === 'livree')
                                                 <span class="badge bg-secondary text-white fs-6">En attente de confirmation du client</span>
                                             @endif
                                         </div>

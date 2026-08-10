@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch, clearToken, firstImage, formatPrice, getToken, flattenErrors, type ApiCollection, type ApiResource, type Article, type User } from "@/lib/api";
+import { apiFetch, clearToken, firstImage, formatPrice, getToken, logout, flattenErrors, type ApiCollection, type ApiResource, type Article, type User } from "@/lib/api";
 
 type Stats = {
   total: number;
@@ -219,8 +219,8 @@ export default function ProfileDashboard() {
               </Link>
               <button
                 type="button"
-                onClick={() => {
-                  clearToken();
+                onClick={async () => {
+                  await logout();
                   router.push("/login");
                 }}
                 className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
