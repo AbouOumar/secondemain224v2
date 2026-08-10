@@ -111,7 +111,10 @@ status.innerHTML = '<span class="text-primary"><i class="bx bx-loader-alt bx-spi
 
 fetch('{{ route("profile.avatar") }}', {
 method: 'POST',
-headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+headers: {
+'X-CSRF-TOKEN': '{{ csrf_token() }}',
+'Accept': 'application/json'
+},
 body: formData
 })
 .then(r => r.json())
