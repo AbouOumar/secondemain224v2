@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\GoogleAuthController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\ArticleController;
 use App\Http\Controllers\Web\ForgotPasswordController;
@@ -22,6 +23,11 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::prefix('auth/google')->name('auth.google.')->group(function () {
+    Route::get('/', [GoogleAuthController::class, 'redirect'])->name('redirect');
+    Route::get('/callback', [GoogleAuthController::class, 'callback'])->name('callback');
+});
 
 Route::middleware('auth')->group(function () {
     Route::prefix('profile')->name('profile.')->group(function () {
