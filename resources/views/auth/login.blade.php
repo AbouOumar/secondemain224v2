@@ -49,11 +49,20 @@ icon.className = 'bx bx-show';
 <a href="{{ route('password.request') }}" class="small">Mot de passe oublié ?</a>
 </div>
 <button type="submit" class="btn btn-primary w-100" style="border-radius: 25px; padding: 12px; font-weight: 600;">Se connecter</button>
-<hr class="my-4">
-<div class="text-center small">
+</form>
+
+<div class="d-flex align-items-center my-4">
+<hr class="flex-grow-1"><span class="px-3 small text-muted">ou</span><hr class="flex-grow-1">
+</div>
+
+<a href="{{ route('auth.google.redirect') }}" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2" style="border-radius: 25px; padding: 12px; font-weight: 600;">
+<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.09-1.8 2.73v2.27h2.91c1.7-1.57 2.69-3.87 2.69-6.64z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.91-2.27c-.81.54-1.84.86-3.05.86-2.35 0-4.34-1.58-5.05-3.71H.98v2.34C2.46 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.95 10.71a5.4 5.4 0 010-3.42V4.95H.98a9 9 0 000 8.1l2.97-2.34z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.46 2.02.98 4.95l2.97 2.34C4.66 5.16 6.65 3.58 9 3.58z"/></svg>
+Continuer avec Google
+</a>
+
+<div class="text-center small mt-4">
 <a href="{{ route('register') }}">Créer un compte</a>
 </div>
-</form>
 </div>
 </div>
 </div>

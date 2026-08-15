@@ -67,7 +67,7 @@
                     </form>
                     @elseif($delivery->status->value === 'livree')
                     <div class="alert alert-info mb-0">
-                        <i class='bx bx-time'></i> Colis livré. En attente de confirmation du client pour finaliser l'opération.
+                        <i class='bx bx-time'></i> <strong>Livraison terminée :</strong> le colis a été marqué comme livré. Vous ne pouvez pas confirmer la réception : seul le client peut le faire pour finaliser la livraison. La livraison sera clôturée automatiquement dès sa confirmation.
                     </div>
                     @endif
                 </div>
