@@ -80,9 +80,22 @@
 <div class="mb-3">
 <label class="form-label fw-medium">Quantité disponible</label>
 <input type="number" name="stock" class="form-control form-control-lg" placeholder="Ex: 10" value="{{ old('stock', $article->stock) }}" min="0">
-<small class="text-muted">Modifiez la quantité si nécessaire.</small>
+<small class="text-muted">Modifiez la quantité si nécessaire. Utile si vous avez beaucoup de ce produit en stock.</small>
 </div>
 @endif
+
+<div class="mb-4">
+<label class="form-label fw-medium">Couleurs disponibles (optionnel)</label>
+<div class="d-flex flex-wrap gap-2" id="colorPicker">
+@foreach(\App\Enums\ProductColor::cases() as $color)
+<label class="color-swatch-label" title="{{ $color->label() }}">
+<input type="checkbox" name="colors[]" value="{{ $color->value }}" class="d-none color-swatch-input" {{ in_array($color->value, old('colors', $article->colors ?? [])) ? 'checked' : '' }}>
+<span class="color-swatch" style="background: {{ $color->value }};"></span>
+</label>
+@endforeach
+</div>
+<small class="text-muted">Sélectionnez jusqu'à 6 couleurs disponibles pour ce produit.</small>
+</div>
 
 <div class="mb-4">
 <div class="form-check form-switch mb-2">
@@ -150,7 +163,40 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+.color-swatch-label { cursor: pointer; display: inline-block; }
+.color-swatch {
+	display: inline-block;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: 2px solid #dee2e6;
+	transition: box-shadow 0.15s, border-color 0.15s;
+}
+.color-swatch-input:checked + .color-swatch {
+	border-color: #e66a00;
+	box-shadow: 0 0 0 2px #e66a00;
+}
+</style>
+@endpush
+
 @push('scripts')
+<script>
+(function() {
+	const MAX_COLORS = 6;
+	const colorInputs = document.querySelectorAll('#colorPicker .color-swatch-input');
+	colorInputs.forEach(function(input) {
+		input.addEventListener('change', function() {
+			const checkedCount = document.querySelectorAll('#colorPicker .color-swatch-input:checked').length;
+			if (checkedCount > MAX_COLORS) {
+				this.checked = false;
+				alert('Vous ne pouvez pas sélectionner plus de ' + MAX_COLORS + ' couleurs.');
+			}
+		});
+	});
+})();
+</script>
 <script>
 document.getElementById('withDelivery').addEventListener('change', function() {
 document.getElementById('deliveryPriceField').classList.toggle('d-none', !this.checked);
