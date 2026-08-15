@@ -9,13 +9,21 @@
 <h6 class="title mb-1 text-truncate" title="{{ $item->titre }}">{{ $item->titre }}</h6>
 <p class="text-muted small mb-1 flex-grow-1">{{ Str::limit($item->description, 80) }}</p>
 <span class="small text-muted mb-2">{{ $item->category->libelle ?? '' }}</span>
-@if($item->user->role->value === 'revendeur_pro')
+@if(isset($item->stock) && $item->stock !== null)
 <div class="mb-1">
 @if($item->stock > 0)
 <span class="badge bg-success text-white"><i class="bx bx-box"></i> En stock ({{ $item->stock }})</span>
 @else
 <span class="badge bg-danger text-white"><i class='bx bxs-box'></i> Rupture</span>
 @endif
+</div>
+@endif
+@if(!empty($item->colors))
+<div class="d-flex align-items-center mb-2 gap-1">
+<small class="text-muted me-1">Couleurs :</small>
+@foreach($item->colors as $hex)
+<span class="color-dot" title="{{ \App\Enums\ProductColor::labelOf($hex) }}" style="width:16px;height:16px;border-radius:50%;background:{{ $hex }};border:1px solid #dee2e6;display:inline-block;"></span>
+@endforeach
 </div>
 @endif
 @if($item->user->role->value === 'revendeur_pro' && $item->user->partner)

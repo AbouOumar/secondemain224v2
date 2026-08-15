@@ -80,6 +80,15 @@
 @endif
 </div>
 
+@if(!empty($article->colors))
+<div class="d-flex align-items-center mt-3 gap-1 flex-wrap">
+<span class="fw-medium me-2">Couleurs :</span>
+@foreach($article->colors as $hex)
+<span class="color-dot" title="{{ \App\Enums\ProductColor::labelOf($hex) }}" style="width:22px;height:22px;border-radius:50%;background:{{ $hex }};border:2px solid #dee2e6;display:inline-block;margin-right:4px;"></span>
+@endforeach
+</div>
+@endif
+
 <div class="d-flex gap-2 mt-4">
 <form method="POST" action="{{ route('orders.create', ['article' => $article->id, 'delivery' => 1]) }}" class="flex-grow-1">
 @csrf
@@ -116,9 +125,9 @@
 @if($article->with_delivery)
 <span class="badge bg-info text-white"><i class="bx bx-check"></i> Livraison disponible</span>
 @endif
-@if($article->user->role->value === 'revendeur_pro' && $article->stock > 0)
+@if(isset($article->stock) && $article->stock !== null && $article->stock > 0)
 <span class="badge bg-success text-white"><i class="bx bx-box"></i> En stock ({{ $article->stock }})</span>
-@elseif($article->user->role->value === 'revendeur_pro')
+@elseif(isset($article->stock) && $article->stock !== null)
 <span class="badge bg-danger text-white"><i class='bx bxs-box'></i> Rupture de stock</span>
 @endif
 @if($article->user->is_verified)

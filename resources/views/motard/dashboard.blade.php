@@ -165,6 +165,9 @@
                                                 </form>
                                             @elseif($delivery->status->value === 'livree')
                                                 <span class="badge bg-secondary text-white fs-6">En attente de confirmation du client</span>
+                                                <div class="small text-muted mt-1" style="max-width: 220px;">
+                                                    <i class='bx bx-lock-alt'></i> Vous ne pouvez pas confirmer : seul le client finalise la livraison.
+                                                </div>
                                             @endif
                                         </div>
                                     </div>
