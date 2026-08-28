@@ -7,10 +7,13 @@ use App\Models\Delivery;
 use App\Events\DeliveryAccepted;
 use App\Events\DeliveryDelivered;
 use App\Events\DeliveryCompleted;
+use App\Services\Escrow\EscrowService;
 use Illuminate\Http\Request;
 
 class MotardController extends Controller
 {
+    public function __construct(private EscrowService $escrow) {}
+
     public function dashboard()
     {
         // Get pending deliveries (status: en_attente) for the motard to accept
@@ -120,8 +123,15 @@ class MotardController extends Controller
         $isBuyer = $delivery->order->buyer_id === $user->id;
         $isAdmin = $user->role?->value === 'admin';
 
-        if (!($isBuyer || $isAdmin) || $delivery->status->value !== 'livree') {
-            abort(403);
+        if (!($isBuyer || $isAdmin)) {
+            // Le livreur (ou tout autre tiers) ne peut pas confirmer lui-même
+            // la réception : c'est ce qui débloque les fonds au vendeur, donc
+            // seul le client (ou un admin en cas de litige) en a le droit.
+            return redirect()->back()->with('error', 'Seul le client peut confirmer la réception de sa livraison.');
+        }
+
+        if ($delivery->status->value !== 'livree') {
+            return redirect()->back()->with('error', 'Cette livraison ne peut pas encore être confirmée : elle n\'a pas été marquée comme livrée.');
         }
 
         $delivery->update([
@@ -131,6 +141,10 @@ class MotardController extends Controller
 
         if ($delivery->order && $delivery->order->status->value !== 'livre') {
             $delivery->order->update(['status' => 'livre']);
+        }
+
+        if ($delivery->order && $delivery->order->escrow) {
+            $this->escrow->release($delivery->order->escrow, 'confirmation_reception');
         }
 
         event(new DeliveryCompleted($delivery));

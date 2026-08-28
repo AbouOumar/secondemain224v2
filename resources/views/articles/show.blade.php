@@ -130,15 +130,13 @@
 @elseif(isset($article->stock) && $article->stock !== null)
 <span class="badge bg-danger text-white"><i class='bx bxs-box'></i> Rupture de stock</span>
 @endif
-@if($article->user->is_verified)
-<span class="badge bg-warning text-dark"><i class='bx bx-shield'></i> Vérifié</span>
-@endif
+@include('partials.verified-badge', ['user' => $article->user])
 </div>
 
 <hr>
 
 <h6 class="fw-bold"><i class="bx bx-user-circle"></i> Vendeur</h6>
-<p class="mb-1 fw-medium">{{ $article->user->name ?? 'Anonyme' }}</p>
+<p class="mb-1 fw-medium"><a href="{{ route('seller.public', $article->user_id) }}" class="text-decoration-none text-dark">{{ $article->user->name ?? 'Anonyme' }}</a></p>
 @if($article->user->role->value === 'revendeur_pro' && $article->user->partner)
 <p class="mb-1"><a href="{{ route('magasin.show', $article->user->partner->slug) }}" class="text-decoration-none small"><i class='bx bx-store'></i> {{ $article->user->partner->nom_magasin }}</a></p>
 @endif
@@ -146,6 +144,16 @@
 <p class="text-muted small mb-2"><i class="bx bx-phone"></i> {{ $article->user->phone }}</p>
 @endif
 <a href="tel:{{ $article->user->phone ?? '' }}" class="btn btn-outline-success btn-sm w-100 mb-3"><i class="bx bx-phone-call"></i> Appeler</a>
+
+@auth
+@if(auth()->id() !== $article->user_id)
+<button class="btn btn-link btn-sm text-muted p-0 mb-3" data-bs-toggle="modal" data-bs-target="#report-article-{{ $article->id }}"><i class="bx bx-flag"></i> Signaler cette annonce</button>
+@endif
+@endauth
+
+<div class="alert alert-light border small mb-3 py-2">
+<i class='bx bx-lock-alt text-success'></i> Paiement sécurisé : les fonds sont bloqués jusqu'à confirmation de réception de l'article.
+</div>
 
 <hr>
 
@@ -192,6 +200,12 @@
 </div>
 </div>
 </div>
+
+@auth
+@if(auth()->id() !== $article->user_id)
+@include('partials.report-modal', ['type' => 'article', 'id' => $article->id, 'label' => $article->titre])
+@endif
+@endauth
 @endsection
 
 @push('scripts')

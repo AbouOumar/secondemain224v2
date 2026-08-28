@@ -90,11 +90,14 @@ class ProfileController extends Controller
     }
 
     /**
-     * Show verification page
+     * Ancienne route de vérification (réservée aux revendeurs pro).
+     * La vérification d'identité est désormais ouverte à tous les vendeurs
+     * via profile.verification — on redirige pour ne pas casser les liens
+     * existants dans les menus.
      */
     public function verification()
     {
-        return view('seller.pro.verification');
+        return redirect()->route('profile.verification');
     }
 
     public function listings(Request $request)

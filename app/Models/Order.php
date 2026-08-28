@@ -55,4 +55,9 @@ class Order extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
+    public function escrow()
+    {
+        return $this->hasOne(Escrow::class);
+    }
 }

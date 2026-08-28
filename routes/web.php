@@ -7,6 +7,9 @@ use App\Http\Controllers\Web\GoogleAuthController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\ArticleController;
 use App\Http\Controllers\Web\ForgotPasswordController;
+use App\Http\Controllers\Web\VerificationController;
+use App\Http\Controllers\Web\ReportController;
+use App\Http\Controllers\Web\SellerProfileController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [HomeController::class, 'search'])->name('search');
@@ -37,7 +40,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
         Route::post('/update', [ProfileController::class, 'update'])->name('update');
         Route::post('/avatar', [ProfileController::class, 'avatar'])->name('avatar');
+        Route::get('/verification', [VerificationController::class, 'show'])->name('verification');
+        Route::post('/verification', [VerificationController::class, 'store'])->name('verification.store');
     });
+
+    Route::post('/signalements', [ReportController::class, 'store'])->name('reports.store');
 
     Route::prefix('articles')->name('articles.')->group(function () {
         Route::get('/create', [ArticleController::class, 'create'])->name('create');
@@ -85,6 +92,8 @@ Route::prefix('articles')->name('articles.')->group(function () {
 
 Route::get('/boutique/{slug}', [\App\Http\Controllers\Web\MagasinController::class, 'show'])->name('magasin.show');
 
+Route::get('/vendeur/{user}', [SellerProfileController::class, 'show'])->name('seller.public');
+
 Route::get('/nous', [App\Http\Controllers\Web\NousController::class, 'index'])->name('nous');
 Route::get('/contact', [App\Http\Controllers\Web\ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [App\Http\Controllers\Web\ContactController::class, 'send'])->name('contact.send');
@@ -95,6 +104,7 @@ Route::get('/revendre', function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/orders/create/{article}/{delivery}', [\App\Http\Controllers\Web\OrderController::class, 'create'])->name('orders.create');
+    Route::post('/orders/{order}/confirm-receipt', [\App\Http\Controllers\Web\OrderController::class, 'confirmReceipt'])->name('orders.confirm-receipt');
 
     Route::prefix('paiement')->name('payment.')->group(function () {
         Route::get('/{order}', [\App\Http\Controllers\Web\PaymentController::class, 'show'])->name('show');
@@ -167,5 +177,25 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::prefix('livraisons')->name('deliveries.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Web\Admin\DeliveryController::class, 'index'])->name('index');
         Route::put('/{delivery}', [\App\Http\Controllers\Web\Admin\DeliveryController::class, 'update'])->name('update');
+    });
+
+    Route::prefix('verifications')->name('verifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\VerificationController::class, 'index'])->name('index');
+        Route::get('/{verification}', [\App\Http\Controllers\Web\Admin\VerificationController::class, 'show'])->name('show');
+        Route::post('/{verification}/approuver', [\App\Http\Controllers\Web\Admin\VerificationController::class, 'approve'])->name('approve');
+        Route::post('/{verification}/rejeter', [\App\Http\Controllers\Web\Admin\VerificationController::class, 'reject'])->name('reject');
+    });
+
+    Route::prefix('signalements')->name('reports.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\ReportController::class, 'index'])->name('index');
+        Route::get('/{report}', [\App\Http\Controllers\Web\Admin\ReportController::class, 'show'])->name('show');
+        Route::post('/{report}/resoudre', [\App\Http\Controllers\Web\Admin\ReportController::class, 'resolve'])->name('resolve');
+    });
+
+    Route::prefix('escrows')->name('escrows.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\EscrowController::class, 'index'])->name('index');
+        Route::post('/{escrow}/liberer', [\App\Http\Controllers\Web\Admin\EscrowController::class, 'release'])->name('release');
+        Route::post('/{escrow}/rembourser', [\App\Http\Controllers\Web\Admin\EscrowController::class, 'refund'])->name('refund');
+        Route::post('/{escrow}/litige', [\App\Http\Controllers\Web\Admin\EscrowController::class, 'dispute'])->name('dispute');
     });
 });

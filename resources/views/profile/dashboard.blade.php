@@ -130,7 +130,7 @@
 <div class="card-body p-4">
 <div class="table-responsive">
 <table class="table">
-<thead><tr><th>Réf.</th><th>Article</th><th>Status</th><th>Total</th><th>Date</th></tr></thead>
+<thead><tr><th>Réf.</th><th>Article</th><th>Status</th><th>Total</th><th>Date</th><th></th></tr></thead>
 <tbody>
 @foreach($recentOrders as $order)
 <tr>
@@ -139,6 +139,14 @@
 <td><span class="badge bg-{{ $order->status->value === 'livre' ? 'success' : ($order->status->value === 'paye' ? 'warning' : 'secondary') }}">{{ $order->status->value }}</span></td>
 <td>{{ number_format($order->total, 0, ',', ' ') }} GNF</td>
 <td>{{ $order->created_at->format('d/m/Y') }}</td>
+<td>
+@if($order->buyer_id === auth()->id() && $order->status->value === 'paye' && !$order->with_delivery)
+<form method="POST" action="{{ route('orders.confirm-receipt', $order) }}">
+@csrf
+<button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('Confirmer la réception de cet article ? Les fonds seront versés au vendeur.')">Confirmer réception</button>
+</form>
+@endif
+</td>
 </tr>
 @endforeach
 </tbody>

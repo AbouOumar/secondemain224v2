@@ -39,6 +39,11 @@
                 </div>
             </div>
 
+            <div class="alert alert-light border small mb-3">
+                <i class='bx bx-lock-alt text-success'></i>
+                <strong>Paiement sécurisé.</strong> Votre argent est bloqué (séquestre) et ne sera versé au vendeur qu'après votre confirmation de réception de l'article.
+            </div>
+
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
                     <h4 class="mb-0">Moyen de paiement</h4>

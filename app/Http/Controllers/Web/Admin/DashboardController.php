@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\Escrow;
+use App\Models\IdentityVerification;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Report;
 use App\Models\User;
 
 class DashboardController extends Controller
@@ -19,6 +22,9 @@ class DashboardController extends Controller
             'total_revenue' => Payment::where('status', 'succes')->sum('montant'),
             'pending_moderation' => Article::where('is_verified', false)->where('is_published', true)->count(),
             'pending_partners' => \App\Models\Partner::where('is_verified', false)->count(),
+            'pending_verifications' => IdentityVerification::where('status', 'pending')->count(),
+            'pending_reports' => Report::where('status', 'pending')->count(),
+            'escrow_held' => Escrow::where('status', 'retenu')->sum('seller_amount'),
         ];
 
         $usersByRole = User::selectRaw('role, count(*) as count')->groupBy('role')->pluck('count', 'role');

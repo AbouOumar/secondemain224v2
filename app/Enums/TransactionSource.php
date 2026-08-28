@@ -6,6 +6,7 @@ enum TransactionSource: string
 {
     case Paiement = 'paiement';
     case Vente = 'vente';
+    case Livraison = 'livraison';
     case Retrait = 'retrait';
     case Remboursement = 'remboursement';
     case Boost = 'boost';

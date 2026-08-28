@@ -16,6 +16,8 @@ use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\BoostController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\SellerController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -33,6 +35,7 @@ Route::prefix('v1')->group(function () {
     Route::get('articles/{slug}', [ArticleController::class, 'show']);
     Route::get('partners', [PartnerController::class, 'index']);
     Route::get('partners/{slug}', [PartnerController::class, 'show']);
+    Route::get('sellers/{user}/stats', [SellerController::class, 'stats']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [LogoutController::class, 'store']);
         Route::post('auth/logout-all', [LogoutController::class, 'destroyAll']);
@@ -53,6 +56,7 @@ Route::prefix('v1')->group(function () {
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{reference}', [OrderController::class, 'show']);
         Route::post('orders/{reference}/cancel', [OrderController::class, 'cancel']);
+        Route::post('orders/{reference}/confirm-receipt', [OrderController::class, 'confirmReceipt']);
         Route::get('seller/orders', [OrderController::class, 'sellerOrders']);
         Route::post('payments/initiate', [PaymentController::class, 'initiate']);
         Route::get('payments/{reference}', [PaymentController::class, 'show']);
@@ -75,6 +79,7 @@ Route::prefix('v1')->group(function () {
         Route::put('notifications/read-all', [NotificationController::class, 'markAllRead']);
         Route::post('ratings', [RatingController::class, 'store']);
         Route::get('users/{user}/ratings', [RatingController::class, 'userRatings']);
+        Route::post('reports', [ReportController::class, 'store']);
 
         Route::prefix('verification')->group(function () {
             Route::get('status', [App\Http\Controllers\Api\VerificationController::class, 'status'])->name('api.verification.status');

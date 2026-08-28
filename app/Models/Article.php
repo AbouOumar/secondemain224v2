@@ -101,4 +101,9 @@ class Article extends Model
     {
         return $this->belongsToMany(User::class, 'article_user_favorites');
     }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
 }

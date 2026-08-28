@@ -37,7 +37,13 @@
                     <dt class="col-5">Téléphone</dt><dd class="col-7">{{ $user->phone }}</dd>
                     <dt class="col-5">Rôle</dt><dd class="col-7">{{ str_replace('_', ' ', $user->role?->value ?? '—') }}</dd>
                     <dt class="col-5">Statut</dt><dd class="col-7">{{ $user->status?->value ?? '—' }}</dd>
-                    <dt class="col-5">Vérifié</dt><dd class="col-7">{{ $user->is_verified ? 'Oui' : 'Non' }}</dd>
+                    <dt class="col-5">Vérifié</dt>
+                    <dd class="col-7">
+                        {{ $user->is_verified ? 'Oui' : 'Non' }}
+                        @if($user->latestIdentityVerification)
+                            · <a href="{{ route('admin.verifications.show', $user->latestIdentityVerification) }}" class="small">voir la demande</a>
+                        @endif
+                    </dd>
                     <dt class="col-5">Inscrit le</dt><dd class="col-7">{{ $user->created_at->format('d/m/Y H:i') }}</dd>
                     @if($user->partner)
                         <dt class="col-5">Magasin</dt>
@@ -60,10 +66,22 @@
                 @endforelse
             </div>
 
-            <div class="card p-3">
+            <div class="card p-3 mb-3">
                 <h2 class="h6 mb-3">Commandes</h2>
                 <p class="small text-muted mb-1">En tant qu'acheteur : {{ $user->ordersAsBuyer->count() }}</p>
                 <p class="small text-muted mb-0">En tant que vendeur : {{ $user->ordersAsSeller->count() }}</p>
+            </div>
+
+            <div class="card p-3">
+                <h2 class="h6 mb-3">Signalements reçus ({{ $user->reports->count() }})</h2>
+                @forelse($user->reports as $report)
+                    <div class="d-flex justify-content-between border-bottom py-2 small">
+                        <span>{{ $report->reason->label() }}</span>
+                        <a href="{{ route('admin.reports.show', $report) }}" class="text-muted">{{ $report->status->value }}</a>
+                    </div>
+                @empty
+                    <p class="text-muted small mb-0">Aucun signalement.</p>
+                @endforelse
             </div>
         </div>
     </div>

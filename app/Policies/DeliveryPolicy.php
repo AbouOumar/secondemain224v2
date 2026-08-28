@@ -22,7 +22,7 @@ class DeliveryPolicy
 
     public function confirm(User $user, Delivery $delivery): bool
     {
-        return ($user->id === $delivery->order->buyer_id || $user->role === 'admin')
+        return ($user->id === $delivery->order->buyer_id || $user->role?->value === 'admin')
             && $delivery->status->value === 'livree';
     }
 }

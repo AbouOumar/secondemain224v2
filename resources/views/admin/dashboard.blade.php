@@ -44,9 +44,27 @@
                 <div class="label">Magasins à vérifier</div>
             </div>
         </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="value text-warning">{{ number_format($stats['pending_verifications']) }}</div>
+                <div class="label">Identités à vérifier</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="value text-danger">{{ number_format($stats['pending_reports']) }}</div>
+                <div class="label">Signalements en attente</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="value">{{ number_format($stats['escrow_held'], 0, ',', ' ') }}</div>
+                <div class="label">Fonds en séquestre (GNF)</div>
+            </div>
+        </div>
     </div>
 
-    @if($stats['pending_moderation'] > 0 || $stats['pending_partners'] > 0)
+    @if($stats['pending_moderation'] > 0 || $stats['pending_partners'] > 0 || $stats['pending_verifications'] > 0 || $stats['pending_reports'] > 0)
         <div class="alert alert-warning d-flex flex-wrap gap-2 align-items-center mb-4">
             <i class='bx bx-error'></i>
             <span>
@@ -57,6 +75,14 @@
                 @if($stats['pending_partners'] > 0)
                     &middot; {{ $stats['pending_partners'] }} magasin(s) en attente de vérification.
                     <a href="{{ route('admin.partners.index') }}" class="alert-link">Voir</a>
+                @endif
+                @if($stats['pending_verifications'] > 0)
+                    &middot; {{ $stats['pending_verifications'] }} identité(s) à vérifier.
+                    <a href="{{ route('admin.verifications.index') }}" class="alert-link">Voir</a>
+                @endif
+                @if($stats['pending_reports'] > 0)
+                    &middot; {{ $stats['pending_reports'] }} signalement(s) en attente.
+                    <a href="{{ route('admin.reports.index') }}" class="alert-link">Voir</a>
                 @endif
             </span>
         </div>

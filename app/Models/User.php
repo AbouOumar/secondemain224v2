@@ -126,4 +126,24 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(Article::class, 'article_user_favorites');
     }
+
+    public function identityVerifications()
+    {
+        return $this->hasMany(IdentityVerification::class);
+    }
+
+    public function latestIdentityVerification()
+    {
+        return $this->hasOne(IdentityVerification::class)->latestOfMany();
+    }
+
+    public function reportsMade()
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
 }

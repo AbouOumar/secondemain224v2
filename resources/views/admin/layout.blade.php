@@ -107,6 +107,15 @@
             <a href="{{ route('admin.deliveries.index') }}" class="nav-link {{ request()->routeIs('admin.deliveries.*') ? 'active' : '' }}">
                 <i class='bx bx-package'></i><span>Livraisons</span>
             </a>
+            <a href="{{ route('admin.verifications.index') }}" class="nav-link {{ request()->routeIs('admin.verifications.*') ? 'active' : '' }}">
+                <i class='bx bxs-badge-check'></i><span>Vérifications</span>
+            </a>
+            <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                <i class='bx bx-flag'></i><span>Signalements</span>
+            </a>
+            <a href="{{ route('admin.escrows.index') }}" class="nav-link {{ request()->routeIs('admin.escrows.*') ? 'active' : '' }}">
+                <i class='bx bx-lock-alt'></i><span>Séquestre</span>
+            </a>
             <hr style="border-color: rgba(255,255,255,0.1);">
             <a href="{{ url('/') }}" class="nav-link"><i class='bx bx-arrow-back'></i><span>Retour au site</span></a>
             <a href="{{ url('/logout') }}" class="nav-link"><i class='bx bx-log-out'></i><span>Déconnexion</span></a>

@@ -9,9 +9,12 @@ use App\Http\Resources\OrderResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Events\OrderCreated;
+use App\Services\Escrow\EscrowService;
 
 class OrderController extends Controller
 {
+    public function __construct(private EscrowService $escrow) {}
+
     public function store(StoreOrderRequest $request) {
         $article = Article::findOrFail($request->article_id);
 
@@ -87,7 +90,30 @@ class OrderController extends Controller
     public function cancel(Request $request, string $reference) {
         $order = Order::where('reference', $reference)->firstOrFail();
         $this->authorize('cancel', $order);
+
+        if ($order->escrow && $order->escrow->status->value === 'retenu') {
+            $this->escrow->refund($order->escrow, $request->raison ?? 'annulation_commande');
+        }
+
         $order->update(['status' => 'annule', 'annule_raison' => $request->raison]);
+        return new OrderResource($order);
+    }
+
+    /**
+     * Confirmation de réception par l'acheteur pour une commande sans
+     * livraison (remise en main propre) : déclenche la libération de
+     * l'escrow au vendeur.
+     */
+    public function confirmReceipt(Request $request, string $reference) {
+        $order = Order::where('reference', $reference)->firstOrFail();
+        $this->authorize('confirmReceipt', $order);
+
+        $order->update(['status' => 'livre']);
+
+        if ($order->escrow) {
+            $this->escrow->release($order->escrow, 'confirmation_reception');
+        }
+
         return new OrderResource($order);
     }
 

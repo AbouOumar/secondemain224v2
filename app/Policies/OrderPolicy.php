@@ -24,4 +24,11 @@ class OrderPolicy
     {
         return $user->id === $order->buyer_id && $order->status->value === 'en_attente_paiement';
     }
+
+    public function confirmReceipt(User $user, Order $order): bool
+    {
+        return $user->id === $order->buyer_id
+            && $order->status->value === 'paye'
+            && ! $order->with_delivery;
+    }
 }
