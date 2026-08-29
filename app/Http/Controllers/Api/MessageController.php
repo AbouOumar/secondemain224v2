@@ -35,11 +35,15 @@ class MessageController extends Controller
         return MessageResource::collection($messages);
     }
 
-    public function store(Request $request, User $receiver) {
+    public function store(Request $request, User $user) {
+        // Note: the controller parameter must be named $user (not $receiver) to
+        // match the {user} route segment, otherwise Laravel's implicit route
+        // model binding silently fails and an empty User instance is injected
+        // instead — resulting in a NULL receiver_id at the database level.
         $request->validate(['message' => 'required|string|max:5000']);
         $message = $this->chatService->sendMessage(
             $request->user(),
-            $receiver,
+            $user,
             $request->message,
             $request->article_id
         );

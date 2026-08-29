@@ -21,7 +21,8 @@ class ChatService {
     }
 
     public function getConversation(User $user1, User $user2, ?int $articleId = null, ?int $perPage = 50) {
-        $query = Message::where(function($q) use ($user1, $user2) {
+        $query = Message::with(['sender', 'receiver', 'article'])
+            ->where(function($q) use ($user1, $user2) {
                 $q->where('sender_id', $user1->id)->where('receiver_id', $user2->id);
             })->orWhere(function($q) use ($user1, $user2) {
                 $q->where('sender_id', $user2->id)->where('receiver_id', $user1->id);
