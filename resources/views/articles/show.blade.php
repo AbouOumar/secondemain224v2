@@ -23,6 +23,19 @@
   max-height: calc(100vh - 100px);
   overflow-y: auto;
 }
+#articleCarousel .carousel-inner {
+  overflow: hidden;
+}
+#articleCarousel .carousel-item img {
+  transition: transform 0.25s ease-out;
+  cursor: zoom-in;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  #articleCarousel .carousel-item img {
+    transition: none;
+  }
+}
 </style>
 <div class="container py-4">
 <div class="article-detail-container">
@@ -179,14 +192,14 @@
 	<div class="d-flex related-scroll gap-3" style="overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;">
 		@foreach($relatedArticles as $rel)
 		<div class="related-item" style="flex:0 0 240px; scroll-snap-align:start;">
-			<div class="card h-100 shadow-sm" style="min-width:220px;">
+			<div class="card article-card h-100 shadow-sm" style="min-width:220px;">
 				@if($rel->images->count())
 				<img src="{{ $rel->images->first()->url }}?fit=fill&w=300&h=180" class="card-img-top" alt="{{ $rel->titre }}" style="height:140px; object-fit:cover;">
 				@else
 				<img src="{{ asset('assets/img/icon.png') }}" class="card-img-top" alt="Pas d'image" style="height:140px; object-fit:contain; background:#f8f9fa;">
 				@endif
 				<div class="card-body p-2">
-					<h6 class="mb-1 text-truncate" style="font-size:0.95rem;">{{ $rel->titre }}</h6>
+					<h6 class="title mb-1 text-truncate" style="font-size:0.95rem;">{{ $rel->titre }}</h6>
 					<p class="text-muted small mb-2">{{ number_format($rel->prix,0,',',' ') }} {{ $rel->currency->value }}</p>
 					<a href="{{ route('articles.show', $rel->slug) }}" class="stretched-link"></a>
 				</div>
@@ -243,5 +256,25 @@ const popup = e.target.parentNode.querySelector('.share-popup');
 if (popup) popup.style.display = 'block';
 }
 });
+</script>
+<script>
+// Zoom photo qui suit le pointeur : au survol de la photo principale, on
+// zoome au niveau exact du curseur (comme sur les fiches produit e-commerce).
+(function () {
+    var images = document.querySelectorAll('#articleCarousel .carousel-item img');
+    images.forEach(function (img) {
+        img.addEventListener('mousemove', function (e) {
+            var rect = img.getBoundingClientRect();
+            var x = ((e.clientX - rect.left) / rect.width) * 100;
+            var y = ((e.clientY - rect.top) / rect.height) * 100;
+            img.style.transformOrigin = x + '% ' + y + '%';
+            img.style.transform = 'scale(1.6)';
+        });
+        img.addEventListener('mouseleave', function () {
+            img.style.transform = 'scale(1)';
+            img.style.transformOrigin = 'center center';
+        });
+    });
+})();
 </script>
 @endpush

@@ -414,13 +414,55 @@
     </style>
     <style>
         .article-card {
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
             border-radius: 10px;
             overflow: hidden;
         }
         .article-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+            transform: translateY(-6px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.15) !important;
+        }
+        .article-card .card-img-top {
+            transition: transform 0.4s ease;
+        }
+        .article-card:hover .card-img-top {
+            transform: scale(1.08);
+        }
+        .article-card:hover .title {
+            color: var(--primary);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .article-card,
+            .article-card .card-img-top {
+                transition: none;
+            }
+            .article-card:hover {
+                transform: none;
+            }
+            .article-card:hover .card-img-top {
+                transform: none;
+            }
+        }
+        /* Transition animée entre les pages (ex: liste -> détail d'une
+           annonce au clic sur "Voir") via la View Transitions API native du
+           navigateur. Amélioration progressive : sans effet sur les
+           navigateurs qui ne la supportent pas encore, aucun JS requis. */
+        @media (prefers-reduced-motion: no-preference) {
+            @view-transition {
+                navigation: auto;
+            }
+            ::view-transition-old(root) {
+                animation: 220ms ease-in both sm224-page-out;
+            }
+            ::view-transition-new(root) {
+                animation: 420ms cubic-bezier(.22,1,.36,1) both sm224-page-in;
+            }
+            @keyframes sm224-page-out {
+                to { opacity: 0; transform: scale(0.97); }
+            }
+            @keyframes sm224-page-in {
+                from { opacity: 0; transform: scale(1.03); }
+            }
         }
         .price-badge {
             position: absolute;
@@ -507,6 +549,35 @@
         .article-card .card-img-top {
             height: 180px;
             object-fit: cover;
+        }
+
+        /* Transition douce entre les pages : la page qui s'affiche apparaît
+           en fondu, celle qu'on quitte s'efface avant la navigation (voir
+           le script de fin de page). */
+        body {
+            opacity: 0;
+            animation: pageFadeIn 0.45s ease forwards;
+        }
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        body.page-transitioning {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            pointer-events: none;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            body {
+                animation: none;
+                opacity: 1;
+            }
+            body.page-transitioning {
+                transition: none;
+                opacity: 1;
+                transform: none;
+            }
         }
     </style>
 </head>
@@ -675,12 +746,47 @@
             });
         }
     </script>
-    <script>  
+    <script>
         function copyLink(url) {
             navigator.clipboard.writeText(url).then(() => {
                 alert('Lien copié !');
             });
         }
+    </script>
+    <script>
+        // Transition de page : au clic sur un lien interne (ex: "Voir" une
+        // annonce), on fait un fondu de sortie avant de naviguer, pour un
+        // rendu plus fluide qu'un rechargement brut. La page d'arrivée
+        // apparaît elle-même en fondu via l'animation pageFadeIn ci-dessus.
+        (function () {
+            var TRANSITION_MS = 220;
+
+            document.addEventListener('click', function (e) {
+                if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+                var link = e.target.closest('a[href]');
+                if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+
+                var href = link.getAttribute('href');
+                if (!href || href.startsWith('#') || /^(mailto|tel|javascript):/i.test(href)) return;
+
+                var url;
+                try { url = new URL(href, window.location.href); } catch (err) { return; }
+                if (url.origin !== window.location.origin) return;
+                if (url.href === window.location.href) return;
+
+                e.preventDefault();
+                document.body.classList.add('page-transitioning');
+                setTimeout(function () { window.location.href = url.href; }, TRANSITION_MS);
+            });
+
+            // Si l'utilisateur revient en arrière (page restaurée depuis le
+            // cache du navigateur), on s'assure que le fondu de sortie ne
+            // reste pas figé et masque la page.
+            window.addEventListener('pageshow', function () {
+                document.body.classList.remove('page-transitioning');
+            });
+        })();
     </script>
 </body>
 </html>
