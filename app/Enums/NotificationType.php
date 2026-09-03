@@ -10,4 +10,9 @@ enum NotificationType: string
     case LivraisonAcceptee = 'livraison_acceptee';
     case LivraisonEffectuee = 'livraison_effectuee';
     case NouveauMessage = 'nouveau_message';
+    case NouvelleOffre = 'nouvelle_offre';
+    case OffreContree = 'offre_contree';
+    case OffreAcceptee = 'offre_acceptee';
+    case OffreRefusee = 'offre_refusee';
+    case AlerteRecherche = 'alerte_recherche';
 }

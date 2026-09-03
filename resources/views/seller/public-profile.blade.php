@@ -71,8 +71,13 @@
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
                 <a href="{{ route('articles.show', $item->slug) }}" class="text-decoration-none text-dark">
                     <div class="card article-card h-100 border-0 shadow-sm">
-                        <img src="{{ $item->images->first()->url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}?fit=fill&w=300&h=200"
-                             class="card-img-top" style="height:160px;object-fit:cover;" loading="lazy">
+                        <div class="position-relative">
+                            <img src="{{ $item->images->first()->url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}?fit=fill&w=300&h=200"
+                                 class="card-img-top" style="height:160px;object-fit:cover;" loading="lazy">
+                            <button type="button" class="favorite-btn" data-saved="{{ in_array($item->id, $savedIds ?? []) ? '1' : '0' }}" onclick="event.preventDefault(); toggleFavorite({{ $item->id }}, this)">
+                                <i class="{{ in_array($item->id, $savedIds ?? []) ? 'bx bxs-heart' : 'bx bx-heart' }}"></i>
+                            </button>
+                        </div>
                         <div class="card-body p-3">
                             <h6 class="title text-truncate mb-1">{{ $item->titre }}</h6>
                             <span class="fw-bold" style="color:var(--primary);">{{ number_format($item->prix, 0, ',', ' ') }} {{ $item->currency->value }}</span>

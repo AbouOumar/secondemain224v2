@@ -476,6 +476,31 @@
             border-radius: 6px;
             z-index: 2;
         }
+        .favorite-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.9);
+            color: var(--gray-600, #6c757d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            z-index: 3;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            transition: transform 0.15s ease, color 0.15s ease;
+        }
+        .favorite-btn:hover {
+            transform: scale(1.12);
+        }
+        .favorite-btn.is-saved,
+        .favorite-btn[data-saved="1"] {
+            color: #e63757;
+        }
         .share-popup {
             display: none;
             position: absolute;
@@ -751,6 +776,35 @@
             navigator.clipboard.writeText(url).then(() => {
                 alert('Lien copié !');
             });
+        }
+    </script>
+    <script>
+        // Bouton cœur (favoris) réutilisé sur toutes les grilles d'annonces.
+        // btnEl porte data-saved="1"/"0" (précalculé côté serveur via le
+        // View Composer $savedIds) pour un état correct au premier rendu.
+        function toggleFavorite(articleId, btnEl) {
+            @guest
+                window.location.href = '{{ route('login') }}';
+                return;
+            @endguest
+            if (btnEl.dataset.loading === '1') return;
+            btnEl.dataset.loading = '1';
+
+            fetch('{{ url('/saved') }}/' + articleId, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+            })
+            .then(res => res.json())
+            .then(data => {
+                btnEl.dataset.saved = data.saved ? '1' : '0';
+                const icon = btnEl.querySelector('i');
+                if (icon) icon.className = data.saved ? 'bx bxs-heart' : 'bx bx-heart';
+                btnEl.classList.toggle('is-saved', data.saved);
+                const label = btnEl.querySelector('span');
+                if (label) label.textContent = data.saved ? 'Enregistré' : 'Enregistrer';
+            })
+            .catch(() => {})
+            .finally(() => { btnEl.dataset.loading = '0'; });
         }
     </script>
     <script>

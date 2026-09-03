@@ -19,9 +19,11 @@ class ArticleController extends Controller
 
         $article->increment('vue_count');
 
-        $relatedArticles = Article::disponible()->where('category_id', $article->category_id)
+        $relatedArticles = Article::disponible()->with('images')
+            ->where('category_id', $article->category_id)
             ->where('id', '!=', $article->id)
             ->where('is_published', true)
+            ->orderByRaw('ABS(prix - ?) asc', [$article->prix])
             ->latest()
             ->take(4)
             ->get();

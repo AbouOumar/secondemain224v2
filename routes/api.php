@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\BoostController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SellerController;
+use App\Http\Controllers\Api\OfferController;
+use App\Http\Controllers\Api\SearchAlertController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -80,6 +82,18 @@ Route::prefix('v1')->group(function () {
         Route::post('ratings', [RatingController::class, 'store']);
         Route::get('users/{user}/ratings', [RatingController::class, 'userRatings']);
         Route::post('reports', [ReportController::class, 'store']);
+
+        Route::get('offers', [OfferController::class, 'index']);
+        Route::post('articles/{article}/offers', [OfferController::class, 'store']);
+        Route::post('offers/{offer}/accept', [OfferController::class, 'accept']);
+        Route::post('offers/{offer}/reject', [OfferController::class, 'reject']);
+        Route::post('offers/{offer}/counter', [OfferController::class, 'counter']);
+        Route::post('offers/{offer}/cancel', [OfferController::class, 'cancel']);
+
+        Route::get('search-alerts', [SearchAlertController::class, 'index']);
+        Route::post('search-alerts', [SearchAlertController::class, 'store']);
+        Route::post('search-alerts/{alert}/toggle', [SearchAlertController::class, 'toggle']);
+        Route::delete('search-alerts/{alert}', [SearchAlertController::class, 'destroy']);
 
         Route::prefix('verification')->group(function () {
             Route::get('status', [App\Http\Controllers\Api\VerificationController::class, 'status'])->name('api.verification.status');

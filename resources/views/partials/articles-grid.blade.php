@@ -4,6 +4,9 @@
 <div class="position-relative">
 <img src="{{ $item->images->first()->url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}?fit=fill&w=300&h=200" alt="{{ $item->titre }}" class="card-img-top" loading="lazy">
 <span class="badge price-badge">{{ number_format($item->prix, 0, ',', ' ') }} {{ $item->currency->value }}</span>
+<button type="button" class="favorite-btn" data-saved="{{ in_array($item->id, $savedIds ?? []) ? '1' : '0' }}" onclick="event.preventDefault(); toggleFavorite({{ $item->id }}, this)">
+<i class="{{ in_array($item->id, $savedIds ?? []) ? 'bx bxs-heart' : 'bx bx-heart' }}"></i>
+</button>
 </div>
 <div class="card-body d-flex flex-column p-3 flex-grow-1">
 <h6 class="title mb-1 text-truncate" title="{{ $item->titre }}">{{ $item->titre }}</h6>

@@ -75,20 +75,37 @@
 <div class="container">
 <div class="bg-light rounded-3 p-3">
 <div class="row g-2 align-items-end">
-<div class="col-md-3 col-6">
+<div class="col-md-2 col-6">
 <label class="form-label small text-muted mb-1">Prix min</label>
 <input type="number" id="filterMinPrice" class="form-control form-control-sm" placeholder="Min" min="0">
 </div>
-<div class="col-md-3 col-6">
+<div class="col-md-2 col-6">
 <label class="form-label small text-muted mb-1">Prix max</label>
 <input type="number" id="filterMaxPrice" class="form-control form-control-sm" placeholder="Max" min="0">
 </div>
-<div class="col-md-4 col-12">
+<div class="col-md-2 col-6">
+<label class="form-label small text-muted mb-1">État</label>
+<select id="filterEtat" class="form-select form-select-sm">
+<option value="">Tous</option>
+@foreach(\App\Enums\ArticleEtat::cases() as $etatCase)
+<option value="{{ $etatCase->value }}">{{ ucfirst(str_replace('_', ' ', $etatCase->value)) }}</option>
+@endforeach
+</select>
+</div>
+<div class="col-md-3 col-6">
 <label class="form-label small text-muted mb-1">Localisation</label>
 <input type="text" id="filterLocation" class="form-control form-control-sm" placeholder="Ville, quartier...">
 </div>
-<div class="col-md-2 col-12 d-grid">
-<button class="btn btn-primary btn-sm" onclick="applyFilters()"><i class='bx bx-search'></i> Appliquer</button>
+<div class="col-md-2 col-6">
+<label class="form-label small text-muted mb-1">Trier par</label>
+<select id="filterSort" class="form-select form-select-sm">
+<option value="recent">Plus récent</option>
+<option value="price_asc">Prix croissant</option>
+<option value="price_desc">Prix décroissant</option>
+</select>
+</div>
+<div class="col-md-1 col-12 d-grid">
+<button class="btn btn-primary btn-sm" onclick="applyFilters()"><i class='bx bx-search'></i></button>
 </div>
 </div>
 </div>
@@ -108,6 +125,9 @@
 <img src="{{ $item->images->first()->url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}?fit=fill&w=300&h=200" alt="{{ $item->titre }}" class="card-img-top" loading="lazy">
 </a>
 <span class="badge price-badge">{{ number_format($item->prix, 0, ',', ' ') }} {{ $item->currency->value }}</span>
+<button type="button" class="favorite-btn" data-saved="{{ in_array($item->id, $savedIds ?? []) ? '1' : '0' }}" onclick="event.preventDefault(); toggleFavorite({{ $item->id }}, this)">
+<i class="{{ in_array($item->id, $savedIds ?? []) ? 'bx bxs-heart' : 'bx bx-heart' }}"></i>
+</button>
 </div>
 <div class="card-body d-flex flex-column p-3 flex-grow-1">
 <h6 class="title mb-1 text-truncate" title="{{ $item->titre }}">{{ $item->titre }}</h6>
@@ -147,6 +167,8 @@ let currentSearch = '';
 let currentMinPrice = '';
 let currentMaxPrice = '';
 let currentLocation = '';
+let currentEtat = '';
+let currentSort = 'recent';
 let currentPage = 2;
 let loading = false;
 let allLoaded = false;
@@ -164,10 +186,11 @@ if (reset) { currentPage = 1; allLoaded = false; }
 if (loading || allLoaded) return;
 loading = true;
 if (reset) { articlesGrid.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-muted" role="status"></div></div>'; }
-let url = searchUrl + `?search=${encodeURIComponent(currentSearch)}&category=${currentCategory}&page=${currentPage}&ajax=1`;
+let url = searchUrl + `?search=${encodeURIComponent(currentSearch)}&category=${currentCategory}&page=${currentPage}&ajax=1&sort=${encodeURIComponent(currentSort)}`;
 if (currentMinPrice) url += `&min_price=${encodeURIComponent(currentMinPrice)}`;
 if (currentMaxPrice) url += `&max_price=${encodeURIComponent(currentMaxPrice)}`;
 if (currentLocation) url += `&localisation=${encodeURIComponent(currentLocation)}`;
+if (currentEtat) url += `&etat=${encodeURIComponent(currentEtat)}`;
 fetch(url)
 .then(res => {
 if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -197,6 +220,8 @@ function applyFilters() {
 currentMinPrice = document.getElementById('filterMinPrice').value.trim();
 currentMaxPrice = document.getElementById('filterMaxPrice').value.trim();
 currentLocation = document.getElementById('filterLocation').value.trim();
+currentEtat = document.getElementById('filterEtat').value;
+currentSort = document.getElementById('filterSort').value;
 initialLoaded = false;
 loadArticles(true);
 }

@@ -50,35 +50,16 @@ class HomeController extends Controller
         ->get();
 
         $query = Article::disponible()->with(['images', 'user', 'category'])
-            ->where('is_published', 1);
+            ->where('is_published', 1)
+            ->matchingCriteria($request->only(['search', 'category', 'min_price', 'max_price', 'etat', 'localisation']));
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('titre', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
+        match ($request->get('sort', 'recent')) {
+            'price_asc' => $query->orderBy('prix', 'asc'),
+            'price_desc' => $query->orderBy('prix', 'desc'),
+            default => $query->orderBy('is_boosted', 'desc')->orderBy('created_at', 'desc'),
+        };
 
-        if ($request->filled('category')) {
-            $query->where('category_id', $request->category);
-        }
-
-        if ($request->filled('min_price')) {
-            $query->where('prix', '>=', $request->min_price);
-        }
-
-        if ($request->filled('max_price')) {
-            $query->where('prix', '<=', $request->max_price);
-        }
-
-        if ($request->filled('localisation')) {
-            $query->where('localisation', 'like', "%{$request->localisation}%");
-        }
-
-        $featuredArticles = $query->orderBy('is_boosted', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(12);
+        $featuredArticles = $query->paginate(12);
 
         $isAjaxRequest = $request->ajax()
             || $request->boolean('ajax')

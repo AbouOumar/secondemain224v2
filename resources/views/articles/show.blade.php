@@ -114,7 +114,10 @@
 </div>
 
 <div class="d-flex gap-2 mt-3">
-<button class="btn btn-outline-secondary" id="saveBtn" onclick="toggleSave()"><i class="bx bx-bookmark"></i> Enregistrer</button>
+<button type="button" class="btn btn-outline-secondary" id="saveBtn" data-saved="{{ in_array($article->id, $savedIds ?? []) ? '1' : '0' }}" onclick="toggleFavorite({{ $article->id }}, this)">
+<i class="{{ in_array($article->id, $savedIds ?? []) ? 'bx bxs-heart' : 'bx bx-heart' }}"></i>
+<span>{{ in_array($article->id, $savedIds ?? []) ? 'Enregistré' : 'Enregistrer' }}</span>
+</button>
 <a href="{{ route('messages.show', ['user' => $article->user_id, 'article' => $article->id]) }}" class="btn btn-outline-primary"><i class="bx bx-message-dots"></i> Contacter</a>
 <button class="btn btn-outline-secondary share-btn" data-url="{{ request()->url() }}"><i class="bx bx-share-alt"></i> Partager</button>
 <div class="share-popup shadow-sm">
@@ -224,30 +227,6 @@
 @push('scripts')
 <script>
 const articleId = {{ $article->id }};
-const saveUrl = '{{ route("saved.toggle", $article->id) }}';
-const saveStatusUrl = '{{ route("saved.toggle", $article->id) }}?check=1';
-
-function toggleSave() {
-    fetch(saveUrl, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } })
-        .then(r => r.json())
-        .then(d => updateBtn(d.saved))
-        .catch(() => {});
-}
-
-function updateBtn(saved) {
-    const btn = document.getElementById('saveBtn');
-    if (saved) {
-        btn.innerHTML = '<i class="bx bx-bookmark"></i> Enregistré';
-        btn.classList.remove('btn-outline-secondary');
-        btn.classList.add('btn-warning');
-    } else {
-        btn.innerHTML = '<i class="bx bx-bookmark"></i> Enregistrer';
-        btn.classList.remove('btn-warning');
-        btn.classList.add('btn-outline-secondary');
-    }
-}
-
-fetch(saveStatusUrl).then(r => r.json()).then(d => updateBtn(d.saved)).catch(() => {});
 
 document.addEventListener('click', e => {
 document.querySelectorAll('.share-popup').forEach(sp => sp.style.display = 'none');

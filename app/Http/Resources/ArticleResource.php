@@ -24,6 +24,7 @@ class ArticleResource extends JsonResource
             'longitude' => $this->longitude,
             'with_delivery' => $this->with_delivery,
             'delivery_prix' => $this->delivery_prix ? (float) $this->delivery_prix : null,
+            'is_published' => $this->is_published,
             'is_boosted' => $this->is_boosted,
             'is_verified' => $this->is_verified,
             'vue_count' => $this->vue_count,

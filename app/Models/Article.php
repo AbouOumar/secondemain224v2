@@ -49,6 +49,32 @@ class Article extends Model
         );
     }
 
+    /**
+     * Filtre une requête selon un jeu de critères de recherche communs —
+     * utilisé à la fois par la recherche du site (HomeController::search)
+     * et par la vérification des alertes de recherche (SearchAlertService),
+     * pour ne définir "qu'est-ce qu'une annonce qui correspond" qu'à un
+     * seul endroit.
+     *
+     * Clés reconnues : search, category (ou category_id), min_price,
+     * max_price, etat, localisation.
+     */
+    public function scopeMatchingCriteria($query, array $filters)
+    {
+        $category = $filters['category'] ?? $filters['category_id'] ?? null;
+
+        return $query
+            ->when($filters['search'] ?? null, function ($q, $search) {
+                $q->where(fn ($q2) => $q2->where('titre', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%"));
+            })
+            ->when($category, fn ($q, $value) => $q->where('category_id', $value))
+            ->when($filters['min_price'] ?? null, fn ($q, $value) => $q->where('prix', '>=', $value))
+            ->when($filters['max_price'] ?? null, fn ($q, $value) => $q->where('prix', '<=', $value))
+            ->when($filters['etat'] ?? null, fn ($q, $value) => $q->where('etat', $value))
+            ->when($filters['localisation'] ?? null, fn ($q, $value) => $q->where('localisation', 'like', "%{$value}%"));
+    }
+
     protected function casts(): array
     {
         return [
@@ -105,5 +131,10 @@ class Article extends Model
     public function reports()
     {
         return $this->morphMany(Report::class, 'reportable');
+    }
+
+    public function offers()
+    {
+        return $this->hasMany(Offer::class);
     }
 }

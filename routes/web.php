@@ -10,6 +10,8 @@ use App\Http\Controllers\Web\ForgotPasswordController;
 use App\Http\Controllers\Web\VerificationController;
 use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\SellerProfileController;
+use App\Http\Controllers\Web\OfferController;
+use App\Http\Controllers\Web\SearchAlertController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [HomeController::class, 'search'])->name('search');
@@ -42,9 +44,23 @@ Route::middleware('auth')->group(function () {
         Route::post('/avatar', [ProfileController::class, 'avatar'])->name('avatar');
         Route::get('/verification', [VerificationController::class, 'show'])->name('verification');
         Route::post('/verification', [VerificationController::class, 'store'])->name('verification.store');
+        Route::get('/offres', [OfferController::class, 'index'])->name('offers.index');
+        Route::get('/alertes', [SearchAlertController::class, 'index'])->name('alerts.index');
     });
 
     Route::post('/signalements', [ReportController::class, 'store'])->name('reports.store');
+
+    Route::post('/articles/{article}/offers', [OfferController::class, 'store'])->name('offers.store');
+    Route::prefix('offers')->name('offers.')->group(function () {
+        Route::post('/{offer}/accept', [OfferController::class, 'accept'])->name('accept');
+        Route::post('/{offer}/reject', [OfferController::class, 'reject'])->name('reject');
+        Route::post('/{offer}/counter', [OfferController::class, 'counter'])->name('counter');
+        Route::post('/{offer}/cancel', [OfferController::class, 'cancel'])->name('cancel');
+    });
+
+    Route::post('/alertes', [SearchAlertController::class, 'store'])->name('alerts.store');
+    Route::post('/alertes/{alert}/toggle', [SearchAlertController::class, 'toggle'])->name('alerts.toggle');
+    Route::delete('/alertes/{alert}', [SearchAlertController::class, 'destroy'])->name('alerts.destroy');
 
     Route::prefix('articles')->name('articles.')->group(function () {
         Route::get('/create', [ArticleController::class, 'create'])->name('create');

@@ -60,4 +60,9 @@ class Order extends Model
     {
         return $this->hasOne(Escrow::class);
     }
+
+    public function offer()
+    {
+        return $this->hasOne(Offer::class);
+    }
 }
