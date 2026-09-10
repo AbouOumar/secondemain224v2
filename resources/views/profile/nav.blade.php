@@ -11,6 +11,12 @@
     <a href="{{ route('profile.saved') }}" class="btn {{ str_starts_with($currentRoute, 'profile.saved') ? 'btn-primary' : 'btn-outline-secondary' }} px-4">
         <i class="bx bx-bookmark"></i> Mes favoris
     </a>
+    <a href="{{ route('profile.offers.index') }}" class="btn {{ str_starts_with($currentRoute, 'profile.offers.index') ? 'btn-primary' : 'btn-outline-secondary' }} px-4">
+        <i class="bx bx-purchase-tag"></i> Mes offres
+    </a>
+    <a href="{{ route('profile.alerts.index') }}" class="btn {{ str_starts_with($currentRoute, 'profile.alerts.index') ? 'btn-primary' : 'btn-outline-secondary' }} px-4">
+        <i class="bx bx-bell"></i> Mes alertes
+    </a>
     <a href="{{ route('profile.edit') }}" class="btn {{ str_starts_with($currentRoute, 'profile.edit') ? 'btn-primary' : 'btn-outline-secondary' }} px-4">
         <i class="bx bx-user"></i> Mon profil
     </a>

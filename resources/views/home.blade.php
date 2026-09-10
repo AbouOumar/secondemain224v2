@@ -108,6 +108,9 @@
 <button class="btn btn-primary btn-sm" onclick="applyFilters()"><i class='bx bx-search'></i></button>
 </div>
 </div>
+<div class="text-end mt-2">
+<button type="button" class="btn btn-link btn-sm text-decoration-none p-0" onclick="createSearchAlert()"><i class='bx bx-bell-plus'></i> Créer une alerte pour ces critères</button>
+</div>
 </div>
 </div>
 </section>
@@ -224,6 +227,32 @@ currentEtat = document.getElementById('filterEtat').value;
 currentSort = document.getElementById('filterSort').value;
 initialLoaded = false;
 loadArticles(true);
+}
+
+function createSearchAlert() {
+@guest
+    window.location.href = '{{ route('login') }}';
+    return;
+@endguest
+applyFilters();
+const payload = {
+    search: currentSearch || null,
+    category_id: currentCategory || null,
+    min_price: currentMinPrice || null,
+    max_price: currentMaxPrice || null,
+    etat: currentEtat || null,
+    localisation: currentLocation || null,
+};
+fetch('{{ route('alerts.store') }}', {
+    method: 'POST',
+    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+})
+.then(res => res.json().then(data => ({ ok: res.ok, data })))
+.then(({ ok, data }) => {
+    alert(ok ? 'Alerte créée ! Vous serez notifié des nouvelles annonces correspondantes.' : (data.message || 'Erreur lors de la création de l\'alerte.'));
+})
+.catch(() => alert('Erreur réseau. Veuillez réessayer.'));
 }
 
 document.addEventListener('click', e => {

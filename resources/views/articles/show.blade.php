@@ -113,6 +113,14 @@
 </form>
 </div>
 
+@auth
+@if(auth()->id() !== $article->user_id && $article->statut !== 'vendu')
+<button type="button" class="btn btn-outline-warning w-100 mt-2" data-bs-toggle="modal" data-bs-target="#make-offer-modal">
+<i class="bx bx-purchase-tag"></i> Faire une offre
+</button>
+@endif
+@endauth
+
 <div class="d-flex gap-2 mt-3">
 <button type="button" class="btn btn-outline-secondary" id="saveBtn" data-saved="{{ in_array($article->id, $savedIds ?? []) ? '1' : '0' }}" onclick="toggleFavorite({{ $article->id }}, this)">
 <i class="{{ in_array($article->id, $savedIds ?? []) ? 'bx bxs-heart' : 'bx bx-heart' }}"></i>
@@ -220,6 +228,28 @@
 @auth
 @if(auth()->id() !== $article->user_id)
 @include('partials.report-modal', ['type' => 'article', 'id' => $article->id, 'label' => $article->titre])
+
+<div class="modal fade" id="make-offer-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('offers.store', $article) }}" class="modal-content">
+            @csrf
+            <div class="modal-header">
+                <h5 class="modal-title">Faire une offre</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Prix affiché : {{ number_format($article->prix, 0, ',', ' ') }} {{ $article->currency->value }}. Le vendeur pourra accepter, refuser ou vous faire une contre-offre.</p>
+                <label class="form-label small fw-medium">Votre offre (GNF) *</label>
+                <input type="number" name="montant" class="form-control" min="{{ (int) round($article->prix * 0.5) }}" required>
+                <small class="text-muted">Minimum {{ number_format(round($article->prix * 0.5), 0, ',', ' ') }} GNF.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-warning"><i class="bx bx-purchase-tag"></i> Envoyer l'offre</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endif
 @endauth
 @endsection
