@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\EmailPreferenceController;
 use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\BoostController;
 use App\Http\Controllers\Api\ReportController;
@@ -47,6 +48,8 @@ Route::prefix('v1')->group(function () {
         Route::put('profile', [ProfileController::class, 'update']);
         Route::post('profile/avatar', [ProfileController::class, 'avatar']);
         Route::get('profile/saved-articles', [ProfileController::class, 'saved']);
+        Route::get('profile/email-preferences', [EmailPreferenceController::class, 'show']);
+        Route::put('profile/email-preferences', [EmailPreferenceController::class, 'update']);
         Route::post('articles', [ArticleController::class, 'store']);
         Route::put('articles/{article}', [ArticleController::class, 'update']);
         Route::delete('articles/{article}', [ArticleController::class, 'destroy']);

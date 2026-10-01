@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\GoogleAuthController;
 use App\Http\Controllers\Web\EmailVerificationController;
+use App\Http\Controllers\Web\EmailPreferenceController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\ArticleController;
 use App\Http\Controllers\Web\ForgotPasswordController;
@@ -37,6 +38,12 @@ Route::post('/email/verification-notification', [EmailVerificationController::cl
     ->middleware(['auth', 'throttle:3,1'])
     ->name('verification.send');
 
+Route::get('/emails/desabonnement/{user}/{category}', [EmailPreferenceController::class, 'showUnsubscribe'])
+    ->middleware('signed')
+    ->name('email.unsubscribe');
+Route::post('/emails/desabonnement/{user}/{category}', [EmailPreferenceController::class, 'unsubscribe'])
+    ->middleware(['signed', 'throttle:10,1']);
+
 Route::prefix('auth/google')->name('auth.google.')->group(function () {
     Route::get('/', [GoogleAuthController::class, 'redirect'])->name('redirect');
     Route::get('/callback', [GoogleAuthController::class, 'callback'])->name('callback');
@@ -54,6 +61,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/verification', [VerificationController::class, 'store'])->name('verification.store');
         Route::get('/offres', [OfferController::class, 'index'])->name('offers.index');
         Route::get('/alertes', [SearchAlertController::class, 'index'])->name('alerts.index');
+        Route::get('/emails', [EmailPreferenceController::class, 'edit'])->name('email-preferences');
+        Route::post('/emails', [EmailPreferenceController::class, 'update'])->name('email-preferences.update');
     });
 
     Route::post('/signalements', [ReportController::class, 'store'])->name('reports.store');

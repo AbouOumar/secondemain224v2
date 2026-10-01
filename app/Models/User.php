@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EmailCategory;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Notifications\Auth\ResetPasswordNotification;
@@ -42,6 +43,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_preferences' => 'array',
             'phone_verified_at' => 'datetime',
             'last_online_at' => 'datetime',
             'role' => UserRole::class,
@@ -68,6 +70,29 @@ class User extends Authenticatable implements MustVerifyEmail
                 $user->sendEmailVerificationNotification();
             }
         });
+    }
+
+    /**
+     * L'utilisateur reçoit-il les e-mails de cette catégorie ?
+     * Uniquement vers une adresse confirmée, pour ne pas écrire à un inconnu.
+     */
+    public function wantsEmailFor(EmailCategory $category): bool
+    {
+        return $this->email
+            && $this->hasVerifiedEmail()
+            && ! in_array($category->value, $this->email_preferences['disabled'] ?? [], true);
+    }
+
+    public function setEmailPreference(EmailCategory $category, bool $enabled): void
+    {
+        $disabled = collect($this->email_preferences['disabled'] ?? [])
+            ->reject(fn ($value) => $value === $category->value);
+
+        if (! $enabled) {
+            $disabled->push($category->value);
+        }
+
+        $this->forceFill(['email_preferences' => ['disabled' => $disabled->values()->all()]])->save();
     }
 
     public function sendEmailVerificationNotification(): void
