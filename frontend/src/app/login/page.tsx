@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch, flattenErrors, setToken, type User } from "@/lib/api";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 type AuthResponse = {
   user: User;
@@ -79,6 +80,8 @@ export default function LoginPage() {
             {loading ? "Connexion..." : "Se connecter"}
           </button>
         </form>
+
+        <GoogleSignInButton text="continue_with" />
 
         <div className="text-center">
           <p className="text-sm text-gray-500">Vous n'avez pas de compte ?</p>

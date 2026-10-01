@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch, flattenErrors, setToken, type User } from "@/lib/api";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 type RegisterResponse = {
   user: User;
@@ -173,6 +174,8 @@ export default function RegisterPage() {
             {loading ? "Création..." : "Créer mon compte"}
           </button>
         </form>
+
+        <GoogleSignInButton text="signup_with" />
 
         <div className="text-center">
           <p className="text-sm text-gray-500">Vous avez déjà un compte ?</p>
