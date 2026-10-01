@@ -59,6 +59,7 @@ class AuthController extends Controller
             'phone' => 'required|string|max:20|unique:users,phone',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'nullable|string|in:acheteur,vendeur,revendeur_pro,motard',
+            'newsletter' => 'nullable|boolean',
         ]);
 
         $user = User::create([
@@ -69,6 +70,10 @@ class AuthController extends Controller
             'role' => $request->role ?? 'acheteur',
             'status' => 'actif',
         ]);
+
+        if ($request->boolean('newsletter')) {
+            $user->forceFill(['newsletter_subscribed_at' => now()])->save();
+        }
 
         Wallet::create(['user_id' => $user->id]);
         $user->notify(new WelcomeNotification);

@@ -115,4 +115,19 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Newsletter
+    |--------------------------------------------------------------------------
+    |
+    | Nombre maximum d'e-mails de newsletter envoyés par minute. Les
+    | hébergements mutualisés limitent les envois horaires : à ajuster selon
+    | la limite de l'hébergeur (5/minute = 300/heure).
+    |
+    */
+
+    'newsletter' => [
+        'per_minute' => (int) env('NEWSLETTER_PER_MINUTE', 5),
+    ],
+
 ];

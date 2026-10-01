@@ -67,6 +67,10 @@
 <option value="motard" {{ old('role') === 'motard' ? 'selected' : '' }}>Motard</option>
 </select>
 </div>
+<div class="form-check mb-4 ms-2">
+<input class="form-check-input" type="checkbox" name="newsletter" value="1" id="newsletter" @checked(old('newsletter'))>
+<label class="form-check-label small text-muted" for="newsletter">Je souhaite recevoir la newsletter (nouveautés et bons plans, désinscription possible à tout moment)</label>
+</div>
 <button type="submit" class="btn btn-primary w-100" style="border-radius: 25px; padding: 12px; font-weight: 600;">S'inscrire</button>
 </form>
 

@@ -12,6 +12,7 @@ class RegisterRequest extends FormRequest
             'phone' => 'required|string|max:20|unique:users,phone',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'nullable|string|in:acheteur,vendeur,revendeur_pro,motard',
+            'newsletter' => 'nullable|boolean',
         ];
     }
 }

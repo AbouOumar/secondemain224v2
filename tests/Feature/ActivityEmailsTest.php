@@ -148,7 +148,7 @@ class ActivityEmailsTest extends TestCase
         $this->actingAs($user, 'sanctum')->getJson('/api/v1/profile/email-preferences')
             ->assertOk()
             ->assertJsonPath('data.email_verified', true)
-            ->assertJsonCount(5, 'data.categories');
+            ->assertJsonCount(6, 'data.categories');
 
         $this->actingAs($user, 'sanctum')->putJson('/api/v1/profile/email-preferences', ['categories' => ['offres' => false]])
             ->assertOk()

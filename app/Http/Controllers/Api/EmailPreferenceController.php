@@ -34,8 +34,6 @@ class EmailPreferenceController extends Controller
 
     private function preferences(Request $request): array {
         $user = $request->user();
-        $disabled = $user->email_preferences['disabled'] ?? [];
-
         return [
             'email' => $user->email,
             'email_verified' => $user->hasVerifiedEmail(),
@@ -43,7 +41,7 @@ class EmailPreferenceController extends Controller
                 'key' => $category->value,
                 'label' => $category->label(),
                 'description' => $category->description(),
-                'enabled' => !in_array($category->value, $disabled, true),
+                'enabled' => $user->emailPreferenceEnabled($category),
             ])->all(),
         ];
     }

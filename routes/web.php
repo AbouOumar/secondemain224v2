@@ -225,6 +225,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/{report}/resoudre', [\App\Http\Controllers\Web\Admin\ReportController::class, 'resolve'])->name('resolve');
     });
 
+    Route::prefix('newsletter')->name('newsletter.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'index'])->name('index');
+        Route::get('/nouvelle', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'store'])->name('store');
+        Route::get('/{campaign}', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'show'])->name('show');
+        Route::get('/{campaign}/modifier', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'edit'])->name('edit');
+        Route::put('/{campaign}', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'update'])->name('update');
+        Route::delete('/{campaign}', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'destroy'])->name('destroy');
+        Route::get('/{campaign}/apercu', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'preview'])->name('preview');
+        Route::post('/{campaign}/test', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'test'])->name('test')->middleware('throttle:5,1');
+        Route::post('/{campaign}/envoyer', [\App\Http\Controllers\Web\Admin\NewsletterController::class, 'send'])->name('send');
+    });
+
     Route::prefix('escrows')->name('escrows.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Web\Admin\EscrowController::class, 'index'])->name('index');
         Route::post('/{escrow}/liberer', [\App\Http\Controllers\Web\Admin\EscrowController::class, 'release'])->name('release');

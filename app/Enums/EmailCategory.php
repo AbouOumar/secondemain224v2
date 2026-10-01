@@ -3,7 +3,8 @@
 namespace App\Enums;
 
 /**
- * Catégories d'e-mails d'activité, que l'utilisateur peut désactiver une à une.
+ * Catégories d'e-mails que l'utilisateur peut activer ou désactiver une à une.
+ * Toutes sont actives par défaut, sauf la newsletter (inscription volontaire).
  */
 enum EmailCategory: string
 {
@@ -12,6 +13,7 @@ enum EmailCategory: string
     case Commandes = 'commandes';
     case Livraisons = 'livraisons';
     case Alertes = 'alertes';
+    case Newsletter = 'newsletter';
 
     public function label(): string
     {
@@ -21,6 +23,7 @@ enum EmailCategory: string
             self::Commandes => 'Commandes',
             self::Livraisons => 'Livraisons',
             self::Alertes => 'Alertes de recherche',
+            self::Newsletter => 'Newsletter',
         };
     }
 
@@ -32,6 +35,7 @@ enum EmailCategory: string
             self::Commandes => 'Confirmation de vos achats et nouvelles commandes sur vos articles.',
             self::Livraisons => 'Suivi des livraisons et missions des livreurs.',
             self::Alertes => 'Nouvelles annonces correspondant à vos alertes.',
+            self::Newsletter => 'Nouveautés et bons plans de Seconde Main 224, quelques e-mails par mois au maximum.',
         };
     }
 

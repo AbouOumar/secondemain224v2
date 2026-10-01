@@ -113,6 +113,9 @@
             <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                 <i class='bx bx-flag'></i><span>Signalements</span>
             </a>
+            <a href="{{ route('admin.newsletter.index') }}" class="nav-link {{ request()->routeIs('admin.newsletter.*') ? 'active' : '' }}">
+                <i class='bx bx-envelope'></i><span>Newsletter</span>
+            </a>
             <a href="{{ route('admin.escrows.index') }}" class="nav-link {{ request()->routeIs('admin.escrows.*') ? 'active' : '' }}">
                 <i class='bx bx-lock-alt'></i><span>Séquestre</span>
             </a>

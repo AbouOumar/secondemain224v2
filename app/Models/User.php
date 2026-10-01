@@ -44,6 +44,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'email_preferences' => 'array',
+            'newsletter_subscribed_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'last_online_at' => 'datetime',
             'role' => UserRole::class,
@@ -80,11 +81,31 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->email
             && $this->hasVerifiedEmail()
-            && ! in_array($category->value, $this->email_preferences['disabled'] ?? [], true);
+            && $this->emailPreferenceEnabled($category);
+    }
+
+    /**
+     * Choix de l'utilisateur pour cette catégorie, indépendamment de l'adresse.
+     */
+    public function emailPreferenceEnabled(EmailCategory $category): bool
+    {
+        if ($category === EmailCategory::Newsletter) {
+            return $this->newsletter_subscribed_at !== null;
+        }
+
+        return ! in_array($category->value, $this->email_preferences['disabled'] ?? [], true);
     }
 
     public function setEmailPreference(EmailCategory $category, bool $enabled): void
     {
+        if ($category === EmailCategory::Newsletter) {
+            if ($enabled !== $this->emailPreferenceEnabled($category)) {
+                $this->forceFill(['newsletter_subscribed_at' => $enabled ? now() : null])->save();
+            }
+
+            return;
+        }
+
         $disabled = collect($this->email_preferences['disabled'] ?? [])
             ->reject(fn ($value) => $value === $category->value);
 
@@ -93,6 +114,14 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         $this->forceFill(['email_preferences' => ['disabled' => $disabled->values()->all()]])->save();
+    }
+
+    public function scopeNewsletterRecipients($query)
+    {
+        return $query->whereNotNull('newsletter_subscribed_at')
+            ->whereNotNull('email')
+            ->whereNotNull('email_verified_at')
+            ->where('status', '!=', 'suspendu');
     }
 
     public function sendEmailVerificationNotification(): void

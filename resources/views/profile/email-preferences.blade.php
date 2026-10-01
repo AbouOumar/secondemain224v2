@@ -27,7 +27,7 @@ Les e-mails sont envoyés uniquement à une adresse confirmée. Confirmez <stron
 @csrf
 @foreach($categories as $category)
 <div class="form-check form-switch py-2 border-bottom">
-<input class="form-check-input" type="checkbox" role="switch" name="categories[]" value="{{ $category->value }}" id="cat-{{ $category->value }}" @checked(! in_array($category->value, $user->email_preferences['disabled'] ?? [], true))>
+<input class="form-check-input" type="checkbox" role="switch" name="categories[]" value="{{ $category->value }}" id="cat-{{ $category->value }}" @checked($user->emailPreferenceEnabled($category))>
 <label class="form-check-label ms-2" for="cat-{{ $category->value }}">
 <strong>{{ $category->label() }}</strong><br>
 <small class="text-muted">{{ $category->description() }}</small>

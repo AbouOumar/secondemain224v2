@@ -16,6 +16,9 @@ Schedule::command('offers:expire-stale')->hourly();
 
 Schedule::command('search-alerts:check')->daily();
 
+// Newsletter : un petit lot chaque minute (limite réglable par NEWSLETTER_PER_MINUTE).
+Schedule::command('newsletter:send-batch')->everyMinute()->withoutOverlapping();
+
 // Hébergement mutualisé : pas de worker de queue permanent possible.
 // Le scheduler (déclenché par le cron LWS) traite la file toutes les minutes.
 Schedule::command('queue:work --stop-when-empty --tries=3 --max-time=50')
