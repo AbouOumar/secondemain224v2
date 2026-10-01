@@ -30,6 +30,7 @@ export default function RegisterPage() {
     password: "",
     password_confirmation: "",
     role: "acheteur",
+    newsletter: false,
   });
   const [phoneCode, setPhoneCode] = useState(COUNTRY_CODES[0].code);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -164,6 +165,17 @@ export default function RegisterPage() {
             </button>
           </div>
           {errors.password_confirmation && <p className="text-sm text-red-600">{errors.password_confirmation}</p>}
+
+          <label className="flex items-start gap-2 text-sm text-gray-600">
+            <input
+              type="checkbox"
+              name="newsletter"
+              checked={formData.newsletter}
+              onChange={(event) => setFormData({ ...formData, newsletter: event.target.checked })}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300"
+            />
+            <span>Je souhaite recevoir la newsletter (nouveautés et bons plans, désinscription possible à tout moment)</span>
+          </label>
           {errors.submit && <p className="text-sm text-red-600">{errors.submit}</p>}
 
           <button
