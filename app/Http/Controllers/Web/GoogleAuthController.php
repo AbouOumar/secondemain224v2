@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\OauthProvider;
-use App\Models\User;
-use App\Models\Wallet;
+use App\Services\Auth\GoogleAccountService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -57,7 +54,7 @@ class GoogleAuthController extends Controller
     /**
      * Handle the callback from Google, log the user in (or create an account).
      */
-    public function callback(Request $request)
+    public function callback(Request $request, GoogleAccountService $accounts)
     {
         $expectedState = $request->session()->pull('google_oauth_state');
 
@@ -92,47 +89,14 @@ class GoogleAuthController extends Controller
             return redirect()->route('login')->withErrors(['login' => 'Impossible de récupérer votre profil Google.']);
         }
 
-        $googleId = $googleUser->json('sub');
-        $email = $googleUser->json('email');
-        $name = $googleUser->json('name') ?: trim($googleUser->json('given_name').' '.$googleUser->json('family_name'));
-        $avatar = $googleUser->json('picture');
+        $user = $accounts->resolveUser($googleUser->json());
 
-        $provider = OauthProvider::where('provider', 'google')
-            ->where('provider_id', $googleId)
-            ->first();
-
-        if ($provider) {
-            $user = $provider->user;
-        } else {
-            $user = $email ? User::where('email', $email)->first() : null;
-
-            if (! $user) {
-                $user = User::create([
-                    'name' => $name ?: 'Utilisateur Google',
-                    'email' => $email,
-                    'phone' => 'g_'.Str::random(12),
-                    'password' => Hash::make(Str::random(32)),
-                    'role' => 'acheteur',
-                    'status' => 'actif',
-                    'avatar' => $avatar,
-                ]);
-
-                Wallet::create(['user_id' => $user->id]);
-            }
-
-            OauthProvider::create([
-                'user_id' => $user->id,
-                'provider' => 'google',
-                'provider_id' => $googleId,
-            ]);
+        if (! $user) {
+            return redirect()->route('login')->withErrors(['login' => "Votre adresse e-mail Google n'est pas vérifiée."]);
         }
 
         if ($user->status?->value === 'suspendu') {
             return redirect()->route('login')->withErrors(['login' => 'Ce compte a été suspendu.']);
-        }
-
-        if ($email && ! $user->email_verified_at) {
-            $user->forceFill(['email_verified_at' => now()])->save();
         }
 
         Auth::login($user, true);
