@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
+use App\Http\Controllers\Api\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\OrderController;
@@ -40,6 +41,7 @@ Route::prefix('v1')->group(function () {
     Route::get('sellers/{user}/stats', [SellerController::class, 'stats']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [LogoutController::class, 'store']);
+        Route::post('auth/email/verification-notification', [EmailVerificationController::class, 'store'])->middleware('throttle:3,1');
         Route::post('auth/logout-all', [LogoutController::class, 'destroyAll']);
         Route::get('profile', [ProfileController::class, 'show']);
         Route::put('profile', [ProfileController::class, 'update']);

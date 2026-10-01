@@ -715,6 +715,19 @@
                     </div>
                 </div>
             @endif
+            @auth
+                @if(auth()->user()->email && ! auth()->user()->hasVerifiedEmail())
+                    <div class="container mt-3">
+                        <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 mb-0" role="alert">
+                            <span><i class='bx bx-envelope me-1'></i> Confirmez votre adresse e-mail <strong>{{ auth()->user()->email }}</strong> grâce au lien que nous vous avons envoyé.</span>
+                            <form method="POST" action="{{ route('verification.send') }}" class="m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-dark">Renvoyer le lien</button>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+            @endauth
             @yield('content')
         </main>
         

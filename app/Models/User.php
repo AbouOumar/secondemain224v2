@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use App\Notifications\Auth\ResetPasswordNotification;
+use App\Notifications\Auth\VerifyEmailNotification;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -50,6 +52,32 @@ class User extends Authenticatable implements MustVerifyEmail
             'verified_at' => 'datetime',
             'verification_documents' => 'array',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Une nouvelle adresse e-mail doit être reconfirmée.
+        static::updating(function (User $user) {
+            if ($user->isDirty('email') && ! $user->isDirty('email_verified_at')) {
+                $user->email_verified_at = null;
+            }
+        });
+
+        static::updated(function (User $user) {
+            if ($user->wasChanged('email') && $user->email && ! $user->hasVerifiedEmail()) {
+                $user->sendEmailVerificationNotification();
+            }
+        });
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     public function articles()

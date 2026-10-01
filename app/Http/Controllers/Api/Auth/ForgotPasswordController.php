@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\PasswordResetToken;
@@ -10,6 +11,13 @@ use App\Models\PasswordResetToken;
 class ForgotPasswordController extends Controller
 {
     public function store(Request $request) {
+        if ($request->filled('email')) {
+            $request->validate(['email' => 'required|email']);
+            // Réponse identique que le compte existe ou non (pas d'énumération des e-mails).
+            Password::sendResetLink($request->only('email'));
+            return response()->json(['message' => 'Si un compte correspond à cette adresse, un lien de réinitialisation vient d\'être envoyé.']);
+        }
+
         $request->validate(['phone' => 'required|string|exists:users,phone']);
         $token = Str::random(60);
         PasswordResetToken::updateOrCreate(

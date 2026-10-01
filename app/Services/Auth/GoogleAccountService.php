@@ -5,6 +5,7 @@ namespace App\Services\Auth;
 use App\Models\OauthProvider;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Notifications\Auth\WelcomeNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -70,6 +71,7 @@ class GoogleAccountService
         }
 
         $user = User::where('email', $email)->first();
+        $created = false;
 
         if (! $user) {
             $name = $profile['name'] ?? trim(($profile['given_name'] ?? '').' '.($profile['family_name'] ?? ''));
@@ -85,6 +87,7 @@ class GoogleAccountService
             ]);
 
             Wallet::create(['user_id' => $user->id]);
+            $created = true;
         }
 
         OauthProvider::create([
@@ -95,6 +98,10 @@ class GoogleAccountService
 
         if (! $user->email_verified_at) {
             $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
+        if ($created) {
+            $user->notify(new WelcomeNotification);
         }
 
         return $user;

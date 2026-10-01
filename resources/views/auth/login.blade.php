@@ -11,6 +11,10 @@
 <h3 class="mt-3 fw-bold">Seconde Main 224</h3>
 </div>
 
+@if (session('status'))
+<div class="alert alert-success py-2">{{ session('status') }}</div>
+@endif
+
 @if ($errors->any())
 <div class="alert alert-danger py-2">{{ $errors->first('login') }}</div>
 @endif

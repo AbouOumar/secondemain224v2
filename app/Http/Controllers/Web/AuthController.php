@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
+use App\Notifications\Auth\WelcomeNotification;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
@@ -70,6 +71,7 @@ class AuthController extends Controller
         ]);
 
         Wallet::create(['user_id' => $user->id]);
+        $user->notify(new WelcomeNotification);
 
         Auth::login($user);
 

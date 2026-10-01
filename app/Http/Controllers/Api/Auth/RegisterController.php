@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Notifications\Auth\WelcomeNotification;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\UserResource;
 
@@ -19,6 +20,7 @@ class RegisterController extends Controller
             'status' => 'actif',
         ]);
         Wallet::create(['user_id' => $user->id, 'balance' => 0, 'currency' => 'GNF']);
+        $user->notify(new WelcomeNotification);
         $token = $user->createToken('auth-token')->plainTextToken;
         return response()->json([
             'user' => new UserResource($user),
