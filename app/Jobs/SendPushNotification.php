@@ -1,10 +1,14 @@
 <?php
 namespace App\Jobs;
-use App\Services\Notification\FirebaseNotificationService;
 use App\Models\User;
+use App\Services\Notification\FcmClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
+/**
+ * Envoie une notification push sur tous les téléphones de l'utilisateur
+ * et oublie les jetons que Firebase signale comme invalides.
+ */
 class SendPushNotification implements ShouldQueue
 {
     use Queueable;
@@ -16,8 +20,16 @@ class SendPushNotification implements ShouldQueue
         public array $data = []
     ) {}
 
-    public function handle(FirebaseNotificationService $fcm): void
+    public function handle(FcmClient $fcm): void
     {
-        $fcm->send($this->user, $this->title, $this->body, 'push', $this->data);
+        if (! $fcm->isConfigured()) {
+            return;
+        }
+
+        foreach ($this->user->deviceTokens as $device) {
+            if ($fcm->send($device->token, $this->title, $this->body, $this->data) === FcmClient::INVALID_TOKEN) {
+                $device->delete();
+            }
+        }
     }
 }

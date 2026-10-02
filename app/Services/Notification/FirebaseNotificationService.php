@@ -1,6 +1,7 @@
 <?php
 namespace App\Services\Notification;
 use App\Enums\EmailCategory;
+use App\Jobs\SendPushNotification;
 use App\Models\User;
 use App\Models\Notification;
 use App\Notifications\ActivityNotification;
@@ -20,6 +21,14 @@ class FirebaseNotificationService {
         $category = EmailCategory::forNotificationType($type);
         if ($category && $user->wantsEmailFor($category)) {
             $user->notify(new ActivityNotification($category, $title, $message));
+        }
+
+        // Notification push sur les téléphones de l'utilisateur (app mobile).
+        if ($user->deviceTokens()->exists()) {
+            SendPushNotification::dispatch($user, $title, $message, [
+                'type' => $type,
+                'route' => PushRoute::forNotification($type, $data),
+            ]);
         }
     }
 
