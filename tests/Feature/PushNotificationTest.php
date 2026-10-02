@@ -117,4 +117,62 @@ class PushNotificationTest extends TestCase
         $this->assertSame('/profile/', PushRoute::forNotification('nouvelle_offre', ['article_id' => 999]));
         $this->assertSame('/profile/', PushRoute::forNotification('achat.valide', ['order_reference' => 'CMD-1']));
     }
+
+    public function test_configuration_errors_never_delete_devices(): void
+    {
+        // Mauvais ID de projet : 404 sans « UNREGISTERED ».
+        $this->fakeGoogle(404, ['error' => ['status' => 'NOT_FOUND', 'message' => 'Requested entity was not found.']]);
+        $user = User::factory()->create();
+        $user->deviceTokens()->create(['token' => 'tok-1', 'platform' => 'android']);
+
+        app(FirebaseNotificationService::class)->send($user, 'T', 'B', 'livraison.livree', []);
+
+        $this->assertDatabaseHas('device_tokens', ['token' => 'tok-1']);
+    }
+
+    public function test_one_failing_device_does_not_stop_the_others(): void
+    {
+        Http::fake(function ($request) {
+            if (str_contains($request->url(), 'oauth2')) {
+                return Http::response(['access_token' => 'oauth-token']);
+            }
+            if ($request['message']['token'] === 'tok-a') {
+                throw new \Illuminate\Http\Client\ConnectionException('Délai dépassé');
+            }
+
+            return Http::response(['name' => 'ok']);
+        });
+        $user = User::factory()->create();
+        $user->deviceTokens()->create(['token' => 'tok-a', 'platform' => 'android']);
+        $user->deviceTokens()->create(['token' => 'tok-b', 'platform' => 'android']);
+
+        app(FirebaseNotificationService::class)->send($user, 'T', 'B', 'livraison.livree', []);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'messages:send') && $request['message']['token'] === 'tok-b');
+        $this->assertSame(2, $user->deviceTokens()->count());
+    }
+
+    public function test_expired_google_token_is_forgotten(): void
+    {
+        $this->fakeGoogle(401, ['error' => ['status' => 'UNAUTHENTICATED']]);
+        $user = User::factory()->create();
+        $user->deviceTokens()->create(['token' => 'tok-1', 'platform' => 'android']);
+
+        app(FirebaseNotificationService::class)->send($user, 'T', 'B', 'livraison.livree', []);
+
+        $this->assertFalse(cache()->has('fcm_access_token'));
+        $this->assertDatabaseHas('device_tokens', ['token' => 'tok-1']);
+    }
+
+    public function test_long_notification_text_is_shortened(): void
+    {
+        $this->fakeGoogle();
+        $user = User::factory()->create();
+        $user->deviceTokens()->create(['token' => 'tok-1', 'platform' => 'android']);
+
+        app(FirebaseNotificationService::class)->send($user, 'T', str_repeat('a', 5000), 'livraison.livree', []);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'messages:send') && mb_strlen($request['message']['notification']['body']) <= 203);
+    }
 }
+

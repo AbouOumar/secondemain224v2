@@ -26,7 +26,9 @@ class FcmClient
      */
     public function send(string $deviceToken, string $title, string $body, array $data = []): string
     {
-        $response = Http::withToken($this->accessToken())
+        // Délais courts : le worker de file d'attente (cron) ne tourne que 50 s par minute.
+        $response = Http::timeout(10)->connectTimeout(5)
+            ->withToken($this->accessToken())
             ->post('https://fcm.googleapis.com/v1/projects/'.config('firebase.project_id').'/messages:send', [
                 'message' => [
                     'token' => $deviceToken,
@@ -40,8 +42,14 @@ class FcmClient
             return self::SENT;
         }
 
+        if ($response->status() === 401) {
+            Cache::forget('fcm_access_token'); // jeton Google expiré : il sera renouvelé
+        }
+
+        // Seul « UNREGISTERED » prouve que le téléphone n'existe plus. Un 404 ou
+        // INVALID_ARGUMENT peut venir d'une erreur de configuration : ne rien supprimer.
         $errorCode = collect($response->json('error.details', []))->pluck('errorCode')->filter()->first();
-        if ($response->status() === 404 || $errorCode === 'UNREGISTERED' || $errorCode === 'INVALID_ARGUMENT') {
+        if ($errorCode === 'UNREGISTERED') {
             return self::INVALID_TOKEN;
         }
 
@@ -69,7 +77,7 @@ class FcmClient
             openssl_sign($unsigned, $signature, $account['private_key'], OPENSSL_ALGO_SHA256);
             $jwt = $unsigned.'.'.rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
 
-            $token = Http::asForm()->post($account['token_uri'], [
+            $token = Http::timeout(10)->connectTimeout(5)->asForm()->post($account['token_uri'], [
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
                 'assertion' => $jwt,
             ])->json('access_token');
