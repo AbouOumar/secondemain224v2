@@ -18,6 +18,18 @@ return [
     'address' => env('LEGAL_ADDRESS') ?: '[à compléter : adresse], Conakry, Guinée',
     'email' => env('LEGAL_EMAIL') ?: '[à compléter : e-mail de contact]',
     'phone' => env('LEGAL_PHONE') ?: '[à compléter : téléphone]',
+    // Valeurs brutes (null si non renseignées) pour les pages publiques,
+    // qui masquent la ligne plutôt que d'afficher « [à compléter] ».
+    'public_phone' => env('LEGAL_PHONE') ?: null,
+    'public_email' => env('LEGAL_EMAIL') ?: null,
+
+    // Réseaux sociaux du pied de page : masqués tant qu'ils ne sont pas renseignés.
+    'social' => [
+        'facebook' => env('SOCIAL_FACEBOOK_URL') ?: null,
+        'whatsapp' => env('SOCIAL_WHATSAPP_NUMBER') ?: null, // ex. 224620000000
+        'twitter' => env('SOCIAL_TWITTER_URL') ?: null,
+    ],
+
     'host' => 'LWS (Ligne Web Services), France — www.lws.fr',
     'updated_at' => '2 octobre 2026',
 ];

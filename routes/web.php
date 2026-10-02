@@ -55,7 +55,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/listings', [ProfileController::class, 'listings'])->name('listings');
         Route::get('/saved', [ProfileController::class, 'saved'])->name('saved');
         Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
-        Route::post('/update', [ProfileController::class, 'update'])->name('update');
+        Route::match(['POST', 'PUT'], '/update', [ProfileController::class, 'update'])->name('update');
         Route::post('/avatar', [ProfileController::class, 'avatar'])->name('avatar');
         Route::get('/verification', [VerificationController::class, 'show'])->name('verification');
         Route::post('/verification', [VerificationController::class, 'store'])->name('verification.store');

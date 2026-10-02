@@ -7,7 +7,22 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>{{ config('app.name', 'Seconde Main 224') }}</title>
+    <title>@yield('title', config('app.name', 'Seconde Main 224'))</title>
+    @php
+        $metaDescription = trim($__env->yieldContent('meta_description'))
+            ?: "Achetez et vendez des articles d'occasion en Guinée : paiement sécurisé par Orange Money et MTN Mobile Money, livraison par motards partenaires.";
+    @endphp
+    <meta name="description" content="{{ $metaDescription }}">
+    {{-- Aperçu des liens partagés (WhatsApp, Facebook, X) --}}
+    <meta property="og:site_name" content="{{ config('app.name') }}">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="@yield('title', config('app.name'))">
+    <meta property="og:description" content="{{ $metaDescription }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="@yield('og_image', asset('assets/img/hero-bg.jpg'))">
+    <meta name="twitter:card" content="summary_large_image">
+    @stack('meta')
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -716,6 +731,16 @@
                 </div>
             @endif
             @auth
+                @if(! auth()->user()->hasRealPhone() && ! request()->routeIs('profile.edit'))
+                    <div class="container mt-3">
+                        <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2 mb-0" role="alert">
+                            <span><i class='bx bx-phone me-1'></i> Ajoutez votre numéro de téléphone pour pouvoir acheter, vendre et être contacté après une commande.</span>
+                            <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-outline-dark">Compléter mon profil</a>
+                        </div>
+                    </div>
+                @endif
+            @endauth
+            @auth
                 @if(auth()->user()->email && ! auth()->user()->hasVerifiedEmail())
                     <div class="container mt-3">
                         <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 mb-0" role="alert">
@@ -744,19 +769,26 @@
                         <ul class="list-unstyled">
                             <li><a href="{{ url('/nous') }}" class="text-white text-decoration-none">Qui sommes-nous ?</a></li>
                             <li><a href="{{ url('/contact') }}" class="text-white text-decoration-none">Contact</a></li>
-                            <li><a href="#" class="text-white text-decoration-none">Aide</a></li>
                             <li><a href="{{ route('legal.terms') }}" class="text-white text-decoration-none">Conditions d'utilisation</a></li>
                             <li><a href="{{ route('legal.privacy') }}" class="text-white text-decoration-none">Confidentialité</a></li>
                         </ul>
                     </div>
+                    @if(array_filter(config('legal.social')))
                     <div class="col-md-4 mb-3">
                         <h5>Suivez-nous</h5>
                         <div class="d-flex gap-3 justify-content-center">
-                            <a href="#" class="text-white"><i class='bx bxl-facebook-circle'></i></a>
-                            <a href="#" class="text-white"><i class='bx bxl-whatsapp'></i></a>
-                            <a href="#" class="text-white"><i class='bx bxl-twitter'></i></a>
+                            @if(config('legal.social.facebook'))
+                                <a href="{{ config('legal.social.facebook') }}" class="text-white" target="_blank" rel="noopener" aria-label="Facebook"><i class='bx bxl-facebook-circle'></i></a>
+                            @endif
+                            @if(config('legal.social.whatsapp'))
+                                <a href="https://wa.me/{{ preg_replace('/\D+/', '', config('legal.social.whatsapp')) }}" class="text-white" target="_blank" rel="noopener" aria-label="WhatsApp"><i class='bx bxl-whatsapp'></i></a>
+                            @endif
+                            @if(config('legal.social.twitter'))
+                                <a href="{{ config('legal.social.twitter') }}" class="text-white" target="_blank" rel="noopener" aria-label="X (Twitter)"><i class='bx bxl-twitter'></i></a>
+                            @endif
                         </div>
                     </div>
+                    @endif
                 </div>
                 <div class="text-center mt-3 border-top border-secondary-subtle pt-3">
                     <p class="mb-0">&copy; {{ now()->year }} Seconde Main 224. Tous droits réservés.</p>

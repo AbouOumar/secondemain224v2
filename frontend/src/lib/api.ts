@@ -37,7 +37,7 @@ export type User = {
   id: number;
   name: string;
   email?: string | null;
-  phone: string;
+  phone: string | null;
   role: string;
   status: string;
   avatar?: string | null;

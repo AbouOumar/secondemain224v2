@@ -57,7 +57,7 @@
                         <div class="mb-4">
                             <label class="form-label fw-medium">Numéro de téléphone *</label>
                             <input type="tel" name="phone" class="form-control form-control-lg"
-                                   value="{{ old('phone', auth()->user()->phone) }}"
+                                   value="{{ old('phone', auth()->user()->hasRealPhone() ? auth()->user()->phone : '') }}"
                                    placeholder="Ex: 622 30 00 01" required>
                             <small class="text-muted">Vous recevrez une notification sur ce numéro pour confirmer le paiement.</small>
                         </div>

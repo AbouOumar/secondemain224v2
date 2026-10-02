@@ -102,6 +102,11 @@ class GoogleAuthController extends Controller
         Auth::login($user, true);
         $request->session()->regenerate();
 
+        if (! $user->hasRealPhone()) {
+            return redirect()->route('profile.edit')
+                ->with('success', 'Bienvenue ! Ajoutez votre numéro de téléphone pour finaliser votre profil.');
+        }
+
         return $this->redirectByRole();
     }
 }

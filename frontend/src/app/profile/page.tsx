@@ -59,7 +59,7 @@ export default function ProfileDashboard() {
         setProfileData({
           name: profile.data.name,
           email: profile.data.email ?? "",
-          phone: profile.data.phone,
+          phone: profile.data.phone ?? "",
         });
         setListings(articles.data);
         setStats(sellerStats);

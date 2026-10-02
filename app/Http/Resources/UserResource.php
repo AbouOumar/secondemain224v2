@@ -10,7 +10,7 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'phone' => $this->phone,
+            'phone' => $this->hasRealPhone() ? $this->phone : null,
             'role' => $this->role,
             'status' => $this->status,
             'avatar' => $this->avatar ? asset('storage/'.$this->avatar) : null,

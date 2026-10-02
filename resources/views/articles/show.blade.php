@@ -1,5 +1,16 @@
 @extends('layouts.app')
 
+@section('title', $article->titre.' — '.number_format($article->prix, 0, ',', ' ').' GNF | '.config('app.name'))
+@section('meta_description', \Illuminate\Support\Str::limit(trim(number_format($article->prix, 0, ',', ' ').' GNF'.($article->localisation ? ' · '.$article->localisation : '').' · '.preg_replace('/\s+/', ' ', strip_tags((string) $article->description))), 200))
+@section('og_type', 'product')
+@if($article->images->isNotEmpty())
+@section('og_image', $article->images->sortBy('ordre')->first()->url)
+@endif
+@push('meta')
+<meta property="product:price:amount" content="{{ $article->prix }}">
+<meta property="product:price:currency" content="{{ $article->currency ?? 'GNF' }}">
+@endpush
+
 @section('content')
 <style>
 .article-detail-container {
@@ -164,10 +175,12 @@
 @if($article->user->role->value === 'revendeur_pro' && $article->user->partner)
 <p class="mb-1"><a href="{{ route('magasin.show', $article->user->partner->slug) }}" class="text-decoration-none small"><i class='bx bx-store'></i> {{ $article->user->partner->nom_magasin }}</a></p>
 @endif
-@if($article->user->phone)
+@if($sellerPhoneVisible)
 <p class="text-muted small mb-2"><i class="bx bx-phone"></i> {{ $article->user->phone }}</p>
+<a href="tel:{{ $article->user->phone }}" class="btn btn-outline-success btn-sm w-100 mb-3"><i class="bx bx-phone-call"></i> Appeler</a>
+@else
+<p class="text-muted small mb-3"><i class="bx bx-message-dots"></i> Échangez avec le vendeur via le bouton « Contacter ». Son numéro vous sera communiqué après votre commande.</p>
 @endif
-<a href="tel:{{ $article->user->phone ?? '' }}" class="btn btn-outline-success btn-sm w-100 mb-3"><i class="bx bx-phone-call"></i> Appeler</a>
 
 @auth
 @if(auth()->id() !== $article->user_id)

@@ -22,8 +22,13 @@
 <div class="card border-0 shadow-sm p-4" style="border-radius: 18px;">
 <h5 class="fw-bold">Contact</h5>
 <p><i class='bx bx-map'></i> Conakry, Guinée</p>
-<p><i class='bx bx-phone'></i> +224 XXX XXX XXX</p>
-<p><i class='bx bx-envelope'></i> contact@secondemain224.com</p>
+@if(config('legal.public_phone'))
+<p><i class='bx bx-phone'></i> <a href="tel:{{ preg_replace('/\s+/', '', config('legal.public_phone')) }}" class="text-decoration-none">{{ config('legal.public_phone') }}</a></p>
+@endif
+@if(config('legal.public_email'))
+<p><i class='bx bx-envelope'></i> <a href="mailto:{{ config('legal.public_email') }}" class="text-decoration-none">{{ config('legal.public_email') }}</a></p>
+@endif
+<p><i class='bx bx-message-dots'></i> <a href="{{ route('contact') }}" class="text-decoration-none">Formulaire de contact</a></p>
 </div>
 </div>
 </div>

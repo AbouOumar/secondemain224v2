@@ -124,6 +124,15 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('status', '!=', 'suspendu');
     }
 
+    /**
+     * Les comptes créés via Google reçoivent un numéro provisoire (« g_… »)
+     * tant que l'utilisateur n'a pas renseigné son vrai numéro.
+     */
+    public function hasRealPhone(): bool
+    {
+        return $this->phone && ! str_starts_with($this->phone, 'g_');
+    }
+
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification);

@@ -28,7 +28,17 @@ class ArticleController extends Controller
             ->take(4)
             ->get();
 
-        return view('articles.show', compact('article', 'relatedArticles'));
+        // Numéro du vendeur : seulement pour un acheteur ayant payé une commande
+        // sur cet article (sinon on passe par la messagerie et le séquestre).
+        $sellerPhoneVisible = $article->user?->hasRealPhone()
+            && Auth::check()
+            && (Auth::id() === $article->user_id
+                || $article->orders()
+                    ->where('buyer_id', Auth::id())
+                    ->whereIn('status', ['paye', 'en_cours', 'livre'])
+                    ->exists());
+
+        return view('articles.show', compact('article', 'relatedArticles', 'sellerPhoneVisible'));
     }
 
     public function create()

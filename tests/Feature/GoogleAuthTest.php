@@ -110,7 +110,7 @@ class GoogleAuthTest extends TestCase
 
         $this->withSession(['google_oauth_state' => 'etat'])
             ->get('/auth/google/callback?state=etat&code=code')
-            ->assertRedirect('/');
+            ->assertRedirect(route('profile.edit')); // nouveau compte : numéro à compléter
 
         $this->assertAuthenticatedAs(User::where('email', 'awa@gmail.com')->firstOrFail());
     }
