@@ -34,7 +34,9 @@ class ImageCompressionService {
     }
 
     /**
-     * Crée la vignette d'une image déjà stockée. Retourne son chemin, ou null.
+     * Crée la vignette d'une image déjà stockée et retourne son chemin.
+     * Si elle ne serait pas plus légère que l'originale (photo déjà petite),
+     * retourne le chemin de l'originale. Null si l'image est introuvable ou illisible.
      */
     public function makeThumbnail(string $path): ?string {
         $disk = Storage::disk('public');
@@ -48,7 +50,14 @@ class ImageCompressionService {
                 return null;
             }
             $thumbPath = dirname($path) . '/thumbs/' . pathinfo($path, PATHINFO_FILENAME) . '.webp';
-            $disk->put($thumbPath, $this->encode($this->resize($image, self::THUMB_SIZE)));
+            $bytes = $this->encode($this->resize($image, self::THUMB_SIZE));
+
+            if (strlen($bytes) >= $disk->size($path)) {
+                $disk->delete($thumbPath); // ancienne vignette plus lourde, le cas échéant
+                return $path;
+            }
+
+            $disk->put($thumbPath, $bytes);
             return $thumbPath;
         } catch (Throwable $e) {
             Log::warning('Vignette impossible', ['path' => $path, 'error' => $e->getMessage()]);

@@ -27,7 +27,8 @@ class ArticleImage extends Model
         });
 
         static::deleted(function (ArticleImage $image) {
-            if ($image->thumb_path) {
+            // thumb_path peut pointer vers l'originale quand elle est déjà légère.
+            if ($image->thumb_path && $image->thumb_path !== ($image->getAttributes()['url'] ?? null)) {
                 Storage::disk('public')->delete($image->thumb_path);
             }
         });
@@ -38,7 +39,10 @@ class ArticleImage extends Model
         return $this->belongsTo(Article::class);
     }
 
-    public function generateThumbnail(): bool
+    /**
+     * Retourne le chemin retenu pour les listes (vignette ou originale), ou null.
+     */
+    public function generateThumbnail(): ?string
     {
         // Chemin brut (sans l'URL ajoutée par l'accesseur), disponible dès l'événement « created ».
         $path = $this->getAttributes()['url'] ?? null;
@@ -49,7 +53,7 @@ class ArticleImage extends Model
             $this->saveQuietly();
         }
 
-        return (bool) $thumb;
+        return $thumb;
     }
 
     protected function url(): Attribute

@@ -75,18 +75,58 @@ class ArticleImagesAndSellerStatsTest extends TestCase
         $this->assertStringNotContainsString('fit=fill', $this->get('/')->getContent());
     }
 
+    /** Photo « réaliste » (bruit aléatoire, peu compressible) en JPEG. */
+    private function noisyJpeg(int $width, int $height, int $quality = 95): string
+    {
+        $image = imagecreatetruecolor($width, $height);
+        for ($x = 0; $x < $width; $x += 2) {
+            for ($y = 0; $y < $height; $y += 2) {
+                imagefilledrectangle($image, $x, $y, $x + 1, $y + 1, random_int(0, 0xFFFFFF));
+            }
+        }
+        ob_start();
+        imagejpeg($image, null, $quality);
+
+        return ob_get_clean();
+    }
+
     public function test_thumbnail_command_backfills_existing_images(): void
     {
         $article = $this->publish(User::factory()->create(), []);
-        $old = UploadedFile::fake()->image('a.jpg', 900, 600);
-        Storage::disk('public')->put('articles/ancienne.jpg', file_get_contents($old->getRealPath()));
-        ArticleImage::withoutEvents(fn () => ArticleImage::create(['article_id' => $article->id, 'url' => 'articles/ancienne.jpg', 'ordre' => 0]));
-        ArticleImage::withoutEvents(fn () => ArticleImage::create(['article_id' => $article->id, 'url' => 'articles/absente.jpg', 'ordre' => 1]));
+        Storage::disk('public')->put('articles/lourde.jpg', $this->noisyJpeg(1200, 800));
+        // Déjà très compressée (comme les photos actuelles du site) : WebP ne ferait pas mieux.
+        Storage::disk('public')->put('articles/legere.jpg', $this->noisyJpeg(400, 300, 10));
+        $heavy = ArticleImage::withoutEvents(fn () => ArticleImage::create(['article_id' => $article->id, 'url' => 'articles/lourde.jpg', 'ordre' => 0]));
+        $light = ArticleImage::withoutEvents(fn () => ArticleImage::create(['article_id' => $article->id, 'url' => 'articles/legere.jpg', 'ordre' => 1]));
+        ArticleImage::withoutEvents(fn () => ArticleImage::create(['article_id' => $article->id, 'url' => 'articles/absente.jpg', 'ordre' => 2]));
 
-        $this->artisan('images:thumbnails')->expectsOutputToContain('1 vignette(s) créée(s), 1 image(s) introuvable(s)')->assertSuccessful();
+        $this->artisan('images:thumbnails')
+            ->expectsOutputToContain('1 vignette(s) créée(s), 1 photo(s) déjà légère(s) gardée(s) telle(s) quelle(s), 1 image(s) introuvable(s)')
+            ->assertSuccessful();
 
-        Storage::disk('public')->assertExists('articles/thumbs/ancienne.webp');
-        Storage::disk('public')->assertExists('articles/ancienne.jpg');
+        Storage::disk('public')->assertExists(['articles/thumbs/lourde.webp', 'articles/lourde.jpg', 'articles/legere.jpg']);
+        Storage::disk('public')->assertMissing('articles/thumbs/legere.webp');
+        $this->assertSame(asset('storage/articles/thumbs/lourde.webp'), $heavy->fresh()->thumb_url);
+        $this->assertSame(asset('storage/articles/legere.jpg'), $light->fresh()->thumb_url);
+        $this->assertLessThan(Storage::disk('public')->size('articles/lourde.jpg'), Storage::disk('public')->size('articles/thumbs/lourde.webp'));
+    }
+
+    public function test_recheck_replaces_heavier_thumbnail_by_original_and_deleting_image_keeps_files_safe(): void
+    {
+        $article = $this->publish(User::factory()->create(), []);
+        // Déjà très compressée (comme les photos actuelles du site) : WebP ne ferait pas mieux.
+        Storage::disk('public')->put('articles/legere.jpg', $this->noisyJpeg(400, 300, 10));
+        Storage::disk('public')->put('articles/thumbs/legere.webp', str_repeat('x', 50000)); // ancienne vignette trop lourde
+        $image = ArticleImage::withoutEvents(fn () => ArticleImage::create(['article_id' => $article->id, 'url' => 'articles/legere.jpg', 'thumb_path' => 'articles/thumbs/legere.webp', 'ordre' => 0]));
+
+        $this->artisan('images:thumbnails --all')->assertSuccessful();
+
+        $this->assertSame('articles/legere.jpg', $image->fresh()->thumb_path);
+        Storage::disk('public')->assertMissing('articles/thumbs/legere.webp');
+
+        // Supprimer l'image ne doit pas effacer l'originale via thumb_path.
+        $image->fresh()->delete();
+        Storage::disk('public')->assertExists('articles/legere.jpg');
     }
 
     public function test_article_page_shows_seller_track_record(): void
