@@ -18,7 +18,12 @@ class DeviceTokenController extends Controller
 
         DeviceToken::updateOrCreate(
             ['token' => $data['token']],
-            ['user_id' => $request->user()->id, 'platform' => $data['platform']],
+            [
+                'user_id' => $request->user()->id,
+                // Session de connexion : le téléphone est oublié quand elle est supprimée.
+                'personal_access_token_id' => $request->user()->currentAccessToken()?->getKey(),
+                'platform' => $data['platform'],
+            ],
         );
 
         return response()->noContent();

@@ -53,4 +53,43 @@ class DeviceTokenTest extends TestCase
         $this->actingAs($user, 'sanctum')->postJson('/api/v1/devices', ['token' => '', 'platform' => 'android'])->assertUnprocessable();
         $this->actingAs($user, 'sanctum')->postJson('/api/v1/devices', ['token' => 'x', 'platform' => 'windows'])->assertUnprocessable();
     }
+
+    /** Enregistre un téléphone avec un vrai jeton de connexion (comme l'app). */
+    private function registerWithRealToken(User $user, string $device): string
+    {
+        $bearer = $user->createToken('auth-token')->plainTextToken;
+        $this->app['auth']->forgetGuards(); // chaque requête HTTP réelle repart de zéro
+        $this->withToken($bearer)->postJson('/api/v1/devices', ['token' => $device, 'platform' => 'android'])->assertNoContent();
+        $this->app['auth']->forgetGuards();
+
+        return $bearer;
+    }
+
+    public function test_logout_stops_notifications_on_that_phone_only(): void
+    {
+        $user = User::factory()->create();
+        $phoneA = $this->registerWithRealToken($user, 'tok-a');
+        $this->registerWithRealToken($user, 'tok-b');
+
+        $this->withToken($phoneA)->postJson('/api/v1/auth/logout')->assertOk();
+
+        $this->assertDatabaseMissing('device_tokens', ['token' => 'tok-a']);
+        $this->assertDatabaseHas('device_tokens', ['token' => 'tok-b']);
+    }
+
+    public function test_logout_everywhere_and_revoked_sessions_stop_all_notifications(): void
+    {
+        $user = User::factory()->create();
+        $bearer = $this->registerWithRealToken($user, 'tok-a');
+        $this->registerWithRealToken($user, 'tok-b');
+
+        $this->withToken($bearer)->postJson('/api/v1/auth/logout-all')->assertOk();
+        $this->assertSame(0, $user->deviceTokens()->count());
+
+        // Session révoquée côté serveur (ex. admin, mot de passe changé) : même effet.
+        $this->registerWithRealToken($user, 'tok-c');
+        $user->tokens()->delete();
+        $this->assertSame(0, $user->deviceTokens()->count());
+    }
 }
+

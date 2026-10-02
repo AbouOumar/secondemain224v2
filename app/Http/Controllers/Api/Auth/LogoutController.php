@@ -25,6 +25,8 @@ class LogoutController extends Controller
     public function destroyAll(Request $request)
     {
         $request->user()->tokens()->delete();
+        // Aussi les téléphones enregistrés hors session (ancienne version de l'app).
+        $request->user()->deviceTokens()->delete();
 
         return response()->json(['message' => 'Déconnecté de tous les appareils.']);
     }

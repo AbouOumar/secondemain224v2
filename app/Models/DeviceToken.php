@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DeviceToken extends Model
 {
-    protected $fillable = ['user_id', 'token', 'platform'];
+    protected $fillable = ['user_id', 'personal_access_token_id', 'token', 'platform'];
 
     public function user()
     {
