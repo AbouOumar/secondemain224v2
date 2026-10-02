@@ -106,4 +106,18 @@ class ArticleImagesAndSellerStatsTest extends TestCase
 
         $this->get('/articles/'.$article->slug)->assertSee('4,5/5')->assertSee('(2 avis)');
     }
+
+    public function test_article_and_seller_pages_still_work_when_stats_come_from_database_cache(): void
+    {
+        // En production le cache est en base : il ne restaure pas les objets (dates).
+        config(['cache.default' => 'database']);
+        $seller = User::factory()->create();
+        $article = $this->publish($seller, []);
+        \App\Models\Message::create(['sender_id' => User::factory()->create()->id, 'receiver_id' => $seller->id, 'message' => 'Bonjour']);
+
+        foreach ([1, 2] as $visit) { // 2e visite : statistiques lues depuis le cache
+            $this->get('/articles/'.$article->slug)->assertOk()->assertSee('Membre depuis');
+            $this->get('/vendeur/'.$seller->id)->assertOk();
+        }
+    }
 }

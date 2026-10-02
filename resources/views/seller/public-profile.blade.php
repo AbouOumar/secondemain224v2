@@ -23,7 +23,7 @@
                         @include('partials.verified-badge', ['user' => $user])
                     </div>
                     <p class="text-muted small mb-0">
-                        <i class='bx bx-calendar'></i> Membre depuis {{ $stats['member_since']->translatedFormat('F Y') }}
+                        <i class='bx bx-calendar'></i> Membre depuis {{ $stats['member_since']?->translatedFormat('F Y') ?? '—' }}
                     </p>
                 </div>
                 <div class="d-flex gap-2">

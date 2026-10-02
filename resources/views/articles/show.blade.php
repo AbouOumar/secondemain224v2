@@ -184,7 +184,9 @@
 @if($sellerStats['response_rate'] !== null)
 <li><i class="bx bx-message-check"></i> Répond à {{ $sellerStats['response_rate'] }} % des messages</li>
 @endif
+@if($sellerStats['member_since'])
 <li><i class="bx bx-calendar"></i> Membre depuis {{ $sellerStats['member_since']->translatedFormat('F Y') }}</li>
+@endif
 </ul>
 @endif
 @if($sellerPhoneVisible)

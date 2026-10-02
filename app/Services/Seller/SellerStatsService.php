@@ -6,6 +6,7 @@ use App\Models\Message;
 use App\Models\Order;
 use App\Models\Rating;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -18,17 +19,24 @@ class SellerStatsService
 {
     public function getStats(User $seller): array
     {
-        return Cache::remember("seller_stats_{$seller->id}", 900, function () use ($seller) {
+        // Le cache (Laravel 13, serializable_classes = false) ne restaure pas
+        // les objets : on n'y stocke que des valeurs simples, dates en texte.
+        $stats = Cache::remember("seller_stats_v2_{$seller->id}", 900, function () use ($seller) {
             return [
                 'sales_count' => $this->salesCount($seller),
-                'member_since' => $seller->created_at,
+                'member_since' => $seller->created_at?->toIso8601String(),
                 'rating_avg' => round((float) Rating::where('rated_id', $seller->id)->avg('rating'), 1),
                 'rating_count' => Rating::where('rated_id', $seller->id)->count(),
                 'response_rate' => $this->responseRate($seller),
                 'is_verified' => (bool) $seller->is_verified,
-                'verified_at' => $seller->verified_at,
+                'verified_at' => $seller->verified_at?->toIso8601String(),
             ];
         });
+
+        $stats['member_since'] = $stats['member_since'] ? Carbon::parse($stats['member_since']) : null;
+        $stats['verified_at'] = $stats['verified_at'] ? Carbon::parse($stats['verified_at']) : null;
+
+        return $stats;
     }
 
     private function salesCount(User $seller): int
