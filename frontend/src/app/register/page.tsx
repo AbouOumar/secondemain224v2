@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch, flattenErrors, setToken, type User } from "@/lib/api";
+import { apiFetch, flattenErrors, setToken, SITE_URL, type User } from "@/lib/api";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 type RegisterResponse = {
@@ -185,6 +185,18 @@ export default function RegisterPage() {
           >
             {loading ? "Création..." : "Créer mon compte"}
           </button>
+
+          <p className="text-center text-xs text-gray-500">
+            En vous inscrivant, vous acceptez nos{" "}
+            <a href={`${SITE_URL}/cgu`} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+              conditions d&apos;utilisation
+            </a>{" "}
+            et notre{" "}
+            <a href={`${SITE_URL}/confidentialite`} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+              politique de confidentialité
+            </a>
+            .
+          </p>
         </form>
 
         <GoogleSignInButton text="signup_with" />
