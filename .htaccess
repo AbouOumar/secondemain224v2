@@ -1,0 +1,13 @@
+# Le domaine pointe sur la racine du projet (adresses en https://natontine.com/public/...).
+# Tout ce qui n'est pas dans public/ est donc interdit au navigateur :
+# .env, storage/ (journaux, pièces d'identité, clés), config/, vendor/,
+# composer.json, artisan, etc. Les requêtes vers /public/... sont traitées
+# par public/.htaccess, qui remplace ces règles pour ce dossier.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} !^/public(/|$)
+    RewriteRule ^ - [F,L]
+</IfModule>
+<IfModule !mod_rewrite.c>
+    RedirectMatch 403 ^/(?!public(/|$)).*
+</IfModule>
