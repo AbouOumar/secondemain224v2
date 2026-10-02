@@ -31,9 +31,12 @@ php artisan storage:link || true
 echo "==> Migrations"
 php artisan migrate --force
 
-echo "==> Mise en cache config/routes/vues"
+echo "==> Mise en cache config/vues"
 php artisan config:cache
-php artisan route:cache
+# Pas de route:cache : tant que le site est servi sous /public
+# (https://natontine.com/public/), le cache des routes casse la page
+# d'accueil (405 sur "/public/"). On s'assure qu'aucun ancien cache ne reste.
+php artisan route:clear
 php artisan view:cache
 php artisan event:cache
 
