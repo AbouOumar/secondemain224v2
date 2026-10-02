@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\EmailPreferenceController;
 use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\BoostController;
@@ -44,6 +45,8 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/logout', [LogoutController::class, 'store']);
         Route::post('auth/email/verification-notification', [EmailVerificationController::class, 'store'])->middleware('throttle:3,1');
         Route::post('auth/logout-all', [LogoutController::class, 'destroyAll']);
+        Route::post('devices', [DeviceTokenController::class, 'store']);
+        Route::delete('devices', [DeviceTokenController::class, 'destroy']);
         Route::get('profile', [ProfileController::class, 'show']);
         Route::put('profile', [ProfileController::class, 'update']);
         Route::post('profile/avatar', [ProfileController::class, 'avatar']);
