@@ -32,6 +32,16 @@ class VerificationController extends Controller
         return view('admin.verifications.show', compact('verification'));
     }
 
+    /**
+     * Sert la pièce d'identité ou le selfie, réservé aux administrateurs.
+     */
+    public function file(IdentityVerification $verification, string $type)
+    {
+        abort_unless(in_array($type, ['document', 'selfie'], true), 404);
+
+        return $verification->fileResponse($type) ?? abort(404, 'Fichier introuvable.');
+    }
+
     public function approve(IdentityVerification $verification)
     {
         $this->verifications->approve($verification, auth()->user());

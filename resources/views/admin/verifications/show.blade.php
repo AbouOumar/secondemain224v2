@@ -46,14 +46,20 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <p class="small text-muted mb-1">Pièce d'identité</p>
-                        <a href="{{ asset('storage/'.$verification->document_path) }}" target="_blank">
-                            <img src="{{ asset('storage/'.$verification->document_path) }}" class="img-fluid rounded border" style="max-height:280px;object-fit:contain;">
-                        </a>
+                        @if($verification->documentIsPdf())
+                            <a href="{{ route('admin.verifications.file', [$verification, 'document']) }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                <i class='bx bxs-file-pdf'></i> Ouvrir le document (PDF)
+                            </a>
+                        @else
+                            <a href="{{ route('admin.verifications.file', [$verification, 'document']) }}" target="_blank">
+                                <img src="{{ route('admin.verifications.file', [$verification, 'document']) }}" class="img-fluid rounded border" style="max-height:280px;object-fit:contain;" alt="Pièce d'identité">
+                            </a>
+                        @endif
                     </div>
                     <div class="col-md-6">
                         <p class="small text-muted mb-1">Selfie</p>
-                        <a href="{{ asset('storage/'.$verification->selfie_path) }}" target="_blank">
-                            <img src="{{ asset('storage/'.$verification->selfie_path) }}" class="img-fluid rounded border" style="max-height:280px;object-fit:contain;">
+                        <a href="{{ route('admin.verifications.file', [$verification, 'selfie']) }}" target="_blank">
+                            <img src="{{ route('admin.verifications.file', [$verification, 'selfie']) }}" class="img-fluid rounded border" style="max-height:280px;object-fit:contain;" alt="Selfie">
                         </a>
                     </div>
                 </div>

@@ -217,6 +217,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::prefix('verifications')->name('verifications.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Web\Admin\VerificationController::class, 'index'])->name('index');
         Route::get('/{verification}', [\App\Http\Controllers\Web\Admin\VerificationController::class, 'show'])->name('show');
+        Route::get('/{verification}/fichier/{type}', [\App\Http\Controllers\Web\Admin\VerificationController::class, 'file'])->name('file');
         Route::post('/{verification}/approuver', [\App\Http\Controllers\Web\Admin\VerificationController::class, 'approve'])->name('approve');
         Route::post('/{verification}/rejeter', [\App\Http\Controllers\Web\Admin\VerificationController::class, 'reject'])->name('reject');
     });

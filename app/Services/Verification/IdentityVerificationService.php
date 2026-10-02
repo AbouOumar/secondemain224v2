@@ -16,8 +16,10 @@ class IdentityVerificationService
 {
     public function submit(User $user, string $documentType, UploadedFile $document, UploadedFile $selfie): IdentityVerification
     {
-        $documentPath = $document->store('verification_documents', 'public');
-        $selfiePath = $selfie->store('verification_selfies', 'public');
+        // Disque privé : jamais accessible par une URL publique, seulement
+        // via la route d'administration protégée.
+        $documentPath = $document->store('verification_documents', IdentityVerification::DISK);
+        $selfiePath = $selfie->store('verification_selfies', IdentityVerification::DISK);
 
         $verification = IdentityVerification::create([
             'user_id' => $user->id,

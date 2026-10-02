@@ -79,7 +79,7 @@ E-mail : {{ config('legal.email') }} · Téléphone : {{ config('legal.phone') }
 <p>Le Site utilise uniquement des cookies nécessaires à son fonctionnement : cookie de session (rester connecté), jeton de sécurité contre les attaques CSRF et, si vous cochez « Se souvenir de moi », un cookie de connexion persistante. L'application web peut aussi enregistrer votre jeton de connexion dans le stockage local du navigateur et des fichiers pour le fonctionnement hors ligne. Nous n'utilisons ni cookies publicitaires ni outils de mesure d'audience.</p>
 
 <h5 class="fw-bold mt-4">7. Sécurité</h5>
-<p>Les mots de passe sont chiffrés, les échanges avec le Site passent par une connexion sécurisée (HTTPS) et l'accès aux outils d'administration est réservé aux personnes habilitées. Aucun système n'étant infaillible, nous vous recommandons d'utiliser un mot de passe unique et de ne jamais le communiquer.</p>
+<p>Les mots de passe sont chiffrés, les échanges avec le Site passent par une connexion sécurisée (HTTPS) l'accès aux outils d'administration est réservé aux personnes habilitées, et les documents de vérification d'identité sont conservés dans un espace privé, consultable uniquement par l'équipe d'administration. Aucun système n'étant infaillible, nous vous recommandons d'utiliser un mot de passe unique et de ne jamais le communiquer.</p>
 
 <h5 class="fw-bold mt-4">8. Vos droits</h5>
 <p>Conformément à la législation de la République de Guinée relative à la protection des données à caractère personnel, vous pouvez :</p>
