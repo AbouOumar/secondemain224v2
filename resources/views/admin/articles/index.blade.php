@@ -30,7 +30,7 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     @if($article->images->first())
-                                        <img src="{{ asset('storage/'.$article->images->first()->url) }}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;">
+                                        <img src="{{ $article->images->first()->thumb_url }}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;">
                                     @endif
                                     <span>{{ $article->titre }}</span>
                                 </div>

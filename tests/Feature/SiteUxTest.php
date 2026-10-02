@@ -131,4 +131,16 @@ class SiteUxTest extends TestCase
         $this->get('/nous')->assertSee('tel:+224620000000', false);
         $this->get('/')->assertSee('https://wa.me/224620000000', false);
     }
+
+    public function test_titles_and_descriptions_are_escaped_once(): void
+    {
+        $article = $this->createArticle();
+        $article->update(['titre' => '<script>alert(1)</script>', 'description' => "L'été & <b>gras</b>"]);
+
+        $this->get('/articles/moto-yamaha')
+            ->assertDontSee('<script>alert(1)</script>', false)
+            ->assertSee('<title>&lt;script&gt;alert(1)&lt;/script&gt;', false)
+            ->assertSee('content="1 500 000 GNF · Kaloum · L&#039;été &amp; gras"', false)
+            ->assertDontSee('&amp;#039;', false);
+    }
 }

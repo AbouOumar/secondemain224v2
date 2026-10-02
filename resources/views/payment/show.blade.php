@@ -21,7 +21,7 @@
                 <div class="card-body p-4">
                     <div class="d-flex gap-3 mb-4">
                         @if($order->article->images->count() > 0)
-                            <img src="{{ $order->article->images->first()->url }}?fit=fill&w=120&h=120" class="rounded" style="width:100px;height:100px;object-fit:cover;">
+                            <img src="{{ $order->article->images->first()->thumb_url }}" class="rounded" style="width:100px;height:100px;object-fit:cover;">
                         @endif
                         <div>
                             <h5 class="fw-bold mb-1">{{ $order->article->titre }}</h5>

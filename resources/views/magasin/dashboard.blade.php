@@ -73,7 +73,7 @@
                     @foreach($articles as $article)
                         <div class="col-6 col-md-4 col-lg-3">
                             <div class="card h-100 border-0 shadow-sm">
-                                <img src="{{ $article->images->first()->url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}" class="card-img-top" alt="{{ $article->titre }}" style="height:140px;object-fit:cover;">
+                                <img src="{{ $article->images->first()->thumb_url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}" class="card-img-top" alt="{{ $article->titre }}" style="height:140px;object-fit:cover;">
                                 <div class="card-body p-2">
                                     <h6 class="mb-1 text-truncate" style="font-size:0.9rem;">{{ $article->titre }}</h6>
                                     <p class="text-muted small mb-1">{{ number_format($article->prix, 0, ',', ' ') }} {{ $article->currency->value }}</p>

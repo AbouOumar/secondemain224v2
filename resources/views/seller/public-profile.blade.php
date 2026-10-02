@@ -23,7 +23,7 @@
                         @include('partials.verified-badge', ['user' => $user])
                     </div>
                     <p class="text-muted small mb-0">
-                        <i class='bx bx-calendar'></i> Membre depuis {{ $stats['member_since']->format('M Y') }}
+                        <i class='bx bx-calendar'></i> Membre depuis {{ $stats['member_since']->translatedFormat('F Y') }}
                     </p>
                 </div>
                 <div class="d-flex gap-2">
@@ -51,7 +51,7 @@
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="border rounded-3 p-3 text-center">
-                        <div class="fs-4 fw-bold" style="color:var(--primary);">{{ $stats['response_rate'] }}%</div>
+                        <div class="fs-4 fw-bold" style="color:var(--primary);">{{ $stats['response_rate'] !== null ? $stats['response_rate'].'%' : '—' }}</div>
                         <div class="small text-muted">Taux de réponse</div>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
                 <a href="{{ route('articles.show', $item->slug) }}" class="text-decoration-none text-dark">
                     <div class="card article-card h-100 border-0 shadow-sm">
                         <div class="position-relative">
-                            <img src="{{ $item->images->first()->url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}?fit=fill&w=300&h=200"
+                            <img src="{{ $item->images->first()->thumb_url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}"
                                  class="card-img-top" style="height:160px;object-fit:cover;" loading="lazy">
                             <button type="button" class="favorite-btn" data-saved="{{ in_array($item->id, $savedIds ?? []) ? '1' : '0' }}" onclick="event.preventDefault(); toggleFavorite({{ $item->id }}, this)">
                                 <i class="{{ in_array($item->id, $savedIds ?? []) ? 'bx bxs-heart' : 'bx bx-heart' }}"></i>

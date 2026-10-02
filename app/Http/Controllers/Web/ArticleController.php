@@ -5,6 +5,7 @@ use App\Models\Article;
 use App\Models\Category;
 use App\Services\Article\BoostService;
 use App\Services\Article\ImageCompressionService;
+use App\Services\Seller\SellerStatsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -38,7 +39,9 @@ class ArticleController extends Controller
                     ->whereIn('status', ['paye', 'en_cours', 'livre'])
                     ->exists());
 
-        return view('articles.show', compact('article', 'relatedArticles', 'sellerPhoneVisible'));
+        $sellerStats = $article->user ? app(SellerStatsService::class)->getStats($article->user) : null;
+
+        return view('articles.show', compact('article', 'relatedArticles', 'sellerPhoneVisible', 'sellerStats'));
     }
 
     public function create()

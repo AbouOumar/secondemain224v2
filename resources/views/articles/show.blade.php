@@ -56,7 +56,7 @@
 <div class="carousel-inner rounded-4 shadow-sm">
 @foreach($article->images as $k => $img)
 <div class="carousel-item {{ $k === 0 ? 'active' : '' }}">
-<img src="{{ $img->url }}?fit=fill&w=800&h=500" class="d-block w-100" alt="{{ $article->titre }}" style="height: 400px; object-fit: cover;">
+<img src="{{ $img->url }}" class="d-block w-100" alt="{{ $article->titre }}" style="height: 400px; object-fit: cover;">
 </div>
 @endforeach
 </div>
@@ -77,7 +77,7 @@
 @if($article->images->count() > 1)
 <div class="d-flex gap-2 mt-2 overflow-auto" style="scrollbar-width:thin;">
 @foreach($article->images as $k => $img)
-<img src="{{ $img->url }}?fit=fill&w=100&h=80" class="rounded border {{ $k === 0 ? 'border-primary' : 'border-secondary' }}" style="width:80px;height:60px;object-fit:cover;cursor:pointer;flex-shrink:0;" onclick="document.querySelector('#articleCarousel [data-bs-slide-to=\'{{ $k }}\']')?.click()" alt="">
+<img src="{{ $img->thumb_url }}" class="rounded border {{ $k === 0 ? 'border-primary' : 'border-secondary' }}" style="width:80px;height:60px;object-fit:cover;cursor:pointer;flex-shrink:0;" onclick="document.querySelector('#articleCarousel [data-bs-slide-to=\'{{ $k }}\']')?.click()" alt="">
 @endforeach
 </div>
 @endif
@@ -175,6 +175,18 @@
 @if($article->user->role->value === 'revendeur_pro' && $article->user->partner)
 <p class="mb-1"><a href="{{ route('magasin.show', $article->user->partner->slug) }}" class="text-decoration-none small"><i class='bx bx-store'></i> {{ $article->user->partner->nom_magasin }}</a></p>
 @endif
+@if($sellerStats)
+<ul class="list-unstyled small text-muted mb-2 seller-stats">
+@if($sellerStats['rating_count'] > 0)
+<li><i class="bx bxs-star text-warning"></i> <strong class="text-dark">{{ number_format($sellerStats['rating_avg'], 1, ',', ' ') }}/5</strong> ({{ $sellerStats['rating_count'] }} avis)</li>
+@endif
+<li><i class="bx bx-package"></i> {{ $sellerStats['sales_count'] > 0 ? $sellerStats['sales_count'].' vente'.($sellerStats['sales_count'] > 1 ? 's' : '').' réussie'.($sellerStats['sales_count'] > 1 ? 's' : '') : 'Nouveau vendeur' }}</li>
+@if($sellerStats['response_rate'] !== null)
+<li><i class="bx bx-message-check"></i> Répond à {{ $sellerStats['response_rate'] }} % des messages</li>
+@endif
+<li><i class="bx bx-calendar"></i> Membre depuis {{ $sellerStats['member_since']->translatedFormat('F Y') }}</li>
+</ul>
+@endif
 @if($sellerPhoneVisible)
 <p class="text-muted small mb-2"><i class="bx bx-phone"></i> {{ $article->user->phone }}</p>
 <a href="tel:{{ $article->user->phone }}" class="btn btn-outline-success btn-sm w-100 mb-3"><i class="bx bx-phone-call"></i> Appeler</a>
@@ -218,7 +230,7 @@
 		<div class="related-item" style="flex:0 0 240px; scroll-snap-align:start;">
 			<div class="card article-card h-100 shadow-sm" style="min-width:220px;">
 				@if($rel->images->count())
-				<img src="{{ $rel->images->first()->url }}?fit=fill&w=300&h=180" class="card-img-top" alt="{{ $rel->titre }}" style="height:140px; object-fit:cover;">
+				<img src="{{ $rel->images->first()->thumb_url }}" class="card-img-top" alt="{{ $rel->titre }}" style="height:140px; object-fit:cover;">
 				@else
 				<img src="{{ asset('assets/img/icon.png') }}" class="card-img-top" alt="Pas d'image" style="height:140px; object-fit:contain; background:#f8f9fa;">
 				@endif

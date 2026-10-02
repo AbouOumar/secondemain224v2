@@ -38,14 +38,17 @@ class SellerStatsService
             ->count();
     }
 
-    private function responseRate(User $seller): int
+    /**
+     * Pourcentage d'interlocuteurs ayant reçu une réponse ; null si personne n'a encore écrit.
+     */
+    private function responseRate(User $seller): ?int
     {
         $senderIds = Message::where('receiver_id', $seller->id)
             ->distinct()
             ->pluck('sender_id');
 
         if ($senderIds->isEmpty()) {
-            return 0;
+            return null;
         }
 
         $repliedTo = 0;

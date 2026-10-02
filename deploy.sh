@@ -31,6 +31,9 @@ php artisan storage:link || true
 echo "==> Migrations"
 php artisan migrate --force
 
+echo "==> Vignettes des photos d'annonces (seulement celles qui manquent)"
+php artisan images:thumbnails || true
+
 echo "==> Mise en cache config/vues"
 php artisan config:cache
 # Pas de route:cache : tant que le site est servi sous /public

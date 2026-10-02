@@ -34,7 +34,7 @@
 <div class="col-md-4">
 <div class="card h-100 shadow-sm">
 @if($article->images->count() > 0)
-<img src="{{ $article->images->first()->url }}" class="card-img-top" alt="{{ $article->titre }}" style="height: 180px; object-fit: cover;">
+<img src="{{ $article->images->first()->thumb_url }}" class="card-img-top" alt="{{ $article->titre }}" style="height: 180px; object-fit: cover;">
 @else
 <img src="{{ asset('assets/img/icon.png') }}" class="card-img-top" alt="Pas d'image" style="height: 180px; object-fit: contain; background-color: #f8f9fa;">
 @endif
@@ -125,7 +125,7 @@
 <div class="card article-card h-100 border-0 shadow-sm position-relative w-100 d-flex flex-column">
 <div class="position-relative">
 <a href="{{ route('articles.show', $item->slug) }}">
-<img src="{{ $item->images->first()->url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}?fit=fill&w=300&h=200" alt="{{ $item->titre }}" class="card-img-top" loading="lazy">
+<img src="{{ $item->images->first()->thumb_url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}" alt="{{ $item->titre }}" class="card-img-top" loading="lazy">
 </a>
 <span class="badge price-badge">{{ number_format($item->prix, 0, ',', ' ') }} {{ $item->currency->value }}</span>
 <button type="button" class="favorite-btn" data-saved="{{ in_array($item->id, $savedIds ?? []) ? '1' : '0' }}" onclick="event.preventDefault(); toggleFavorite({{ $item->id }}, this)">

@@ -213,7 +213,7 @@
                                             <td class="ps-4 align-middle">
                                                 <div class="d-flex align-items-center">
                                                     @if($delivery->order->article->images->count() > 0)
-                                                        <img src="{{ $delivery->order->article->images->first()->url }}" alt="{{ $delivery->order->article->titre }}" width="40" height="40" class="me-2 rounded">
+                                                        <img src="{{ $delivery->order->article->images->first()->thumb_url }}" alt="{{ $delivery->order->article->titre }}" width="40" height="40" class="me-2 rounded">
                                                     @endif
                                                     <div>
                                                         <small class="fw-bold d-block">{{ $delivery->order->article->titre }}</small>

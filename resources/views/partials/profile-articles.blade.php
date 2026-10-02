@@ -2,7 +2,7 @@
 <div class="col-12 col-sm-6 col-md-4 col-lg-3 article-item">
 <div class="card article-card h-100 border-0 shadow-sm position-relative">
 <div class="position-relative">
-<img src="{{ $item->images->first()->url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}?fit=fill&w=300&h=200" alt="{{ $item->titre }}" class="card-img-top" loading="lazy">
+<img src="{{ $item->images->first()->thumb_url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}" alt="{{ $item->titre }}" class="card-img-top" loading="lazy">
 <span class="badge price-badge">{{ number_format($item->prix, 0, ',', ' ') }} {{ $item->currency->value }}</span>
 <span class="badge position-absolute top-0 end-0 m-2 bg-{{ $item->statut === 'vendu' ? 'danger' : ($item->is_boosted ? 'warning' : 'success') }}">{{ $item->statut === 'vendu' ? 'Vendu' : ($item->is_boosted ? 'Boosté' : 'En vente') }}</span>
 @if($item->is_boosted)<span class="badge position-absolute top-0 start-0 m-2 bg-warning text-dark"><i class="bx bx-rocket"></i></span>@endif

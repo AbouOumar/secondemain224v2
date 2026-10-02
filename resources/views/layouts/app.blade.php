@@ -9,16 +9,18 @@
     <meta http-equiv="Expires" content="0">
     <title>@yield('title', config('app.name', 'Seconde Main 224'))</title>
     @php
+        // Le contenu d'une @section('…', $valeur) est déjà échappé par Blade :
+        // on l'affiche tel quel pour éviter un double échappement (&amp;#039;).
         $metaDescription = trim($__env->yieldContent('meta_description'))
-            ?: "Achetez et vendez des articles d'occasion en Guinée : paiement sécurisé par Orange Money et MTN Mobile Money, livraison par motards partenaires.";
+            ?: e("Achetez et vendez des articles d'occasion en Guinée : paiement sécurisé par Orange Money et MTN Mobile Money, livraison par motards partenaires.");
     @endphp
-    <meta name="description" content="{{ $metaDescription }}">
+    <meta name="description" content="{!! $metaDescription !!}">
     {{-- Aperçu des liens partagés (WhatsApp, Facebook, X) --}}
     <meta property="og:site_name" content="{{ config('app.name') }}">
     <meta property="og:locale" content="fr_FR">
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:title" content="@yield('title', config('app.name'))">
-    <meta property="og:description" content="{{ $metaDescription }}">
+    <meta property="og:description" content="{!! $metaDescription !!}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="@yield('og_image', asset('assets/img/hero-bg.jpg'))">
     <meta name="twitter:card" content="summary_large_image">

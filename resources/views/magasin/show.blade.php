@@ -77,7 +77,7 @@
                             <div class="card article-card h-100 border-0 shadow-sm">
                                 <div class="position-relative">
                                     <a href="{{ route('articles.show', $item->slug) }}">
-                                        <img src="{{ $item->images->first()->url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}" alt="{{ $item->titre }}" class="card-img-top" loading="lazy" style="height:180px;object-fit:cover;">
+                                        <img src="{{ $item->images->first()->thumb_url ?? 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Photo' }}" alt="{{ $item->titre }}" class="card-img-top" loading="lazy" style="height:180px;object-fit:cover;">
                                     </a>
                                     <span class="badge price-badge">{{ number_format($item->prix, 0, ',', ' ') }} {{ $item->currency->value }}</span>
                                     @if($item->is_boosted)

@@ -23,3 +23,19 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Cache navigateur des fichiers statiques : évite de retélécharger photos,
+# icônes et feuilles de style à chaque visite (connexions mobiles lentes).
+# Les photos d'annonces ont des noms aléatoires : elles ne changent jamais.
+<IfModule mod_headers.c>
+    <FilesMatch "\.(jpe?g|png|webp|gif|svg|ico)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+    <FilesMatch "\.(css|js|woff2?)$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+    # Le service worker et le manifeste doivent toujours être à jour.
+    <FilesMatch "^(sw\.js|manifest\.json)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>

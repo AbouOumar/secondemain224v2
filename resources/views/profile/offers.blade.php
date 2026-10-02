@@ -36,7 +36,7 @@
                     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
                         <div class="d-flex gap-3 align-items-center">
                             @if($article)
-                                <img src="{{ $article->images->first()->url ?? 'https://placehold.co/80x80/e2e8f0/94a3b8?text=?' }}?fit=fill&w=80&h=80" style="width:64px;height:64px;object-fit:cover;border-radius:8px;">
+                                <img src="{{ $article->images->first()->thumb_url ?? 'https://placehold.co/80x80/e2e8f0/94a3b8?text=?' }}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;">
                                 <div>
                                     <a href="{{ route('articles.show', $article->slug) }}" class="fw-bold text-dark text-decoration-none">{{ $article->titre }}</a>
                                     <p class="text-muted small mb-0">Prix affiché : {{ number_format($article->prix, 0, ',', ' ') }} GNF · {{ $isBuyer ? 'Vendeur' : 'Acheteur' }} : {{ $otherParty->name }}</p>
