@@ -6,6 +6,9 @@
 
 set -e
 
+# Si une étape échoue, ne pas laisser le site bloqué en mode maintenance.
+trap 'echo "!! Échec du déploiement : sortie du mode maintenance."; php artisan up' ERR
+
 echo "==> Mode maintenance activé"
 php artisan down || true
 
@@ -14,7 +17,8 @@ composer install --no-dev --optimize-autoloader --no-interaction
 
 if command -v npm >/dev/null 2>&1; then
     echo "==> Build des assets front (Vite)"
-    npm ci
+    # Pas de package-lock.json versionné à la racine : npm ci échouerait.
+    if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
     npm run build
 else
     echo "==> npm indisponible sur cet environnement : assurez-vous que public/build"
