@@ -745,6 +745,8 @@
                             <li><a href="{{ url('/nous') }}" class="text-white text-decoration-none">Qui sommes-nous ?</a></li>
                             <li><a href="{{ url('/contact') }}" class="text-white text-decoration-none">Contact</a></li>
                             <li><a href="#" class="text-white text-decoration-none">Aide</a></li>
+                            <li><a href="{{ route('legal.terms') }}" class="text-white text-decoration-none">Conditions d'utilisation</a></li>
+                            <li><a href="{{ route('legal.privacy') }}" class="text-white text-decoration-none">Confidentialité</a></li>
                         </ul>
                     </div>
                     <div class="col-md-4 mb-3">

@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
 class OfferService
 {
     private const MIN_OFFER_RATIO = 0.5;
-    private const EXPIRY_HOURS = 48;
+    public const EXPIRY_HOURS = 48;
 
     public function __construct(private OrderService $orders) {}
 
