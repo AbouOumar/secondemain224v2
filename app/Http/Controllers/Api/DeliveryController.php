@@ -40,6 +40,44 @@ class DeliveryController extends Controller
         return DeliveryResource::collection($deliveries);
     }
 
+    /**
+     * Position du livreur : met à jour toutes ses courses actives d'un coup. C'est la route qu'appelle le
+     * service Android (écran éteint), qui ne connaît pas l'identifiant des courses.
+     */
+    public function position(Request $request) {
+        abort_unless($request->user()->role?->value === 'motard', 403);
+        $data = $request->validate([
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        $deliveries = Delivery::where('rider_id', $request->user()->id)->whereIn('status', ['acceptee', 'en_cours'])->get();
+        foreach ($deliveries as $delivery) {
+            $this->trackingService->updatePosition($delivery, (float) $data['latitude'], (float) $data['longitude']);
+        }
+
+        return response()->json(['updated' => $deliveries->count()]);
+    }
+
+    /**
+     * Jeton réservé à l'envoi de position, remis au service Android : si le téléphone est compromis, il ne
+     * donne accès ni au portefeuille ni au compte. Un seul à la fois (l'ancien est révoqué).
+     */
+    public function createPositionToken(Request $request) {
+        abort_unless($request->user()->role?->value === 'motard', 403);
+
+        $request->user()->tokens()->where('name', 'rider-position')->delete();
+        $token = $request->user()->createToken('rider-position', ['position'])->plainTextToken;
+
+        return response()->json(['token' => $token], 201);
+    }
+
+    public function deletePositionToken(Request $request) {
+        $request->user()->tokens()->where('name', 'rider-position')->delete();
+
+        return response()->json(null, 204);
+    }
+
     public function earnings(Request $request) {
         abort_unless($request->user()->role?->value === 'motard', 403);
 

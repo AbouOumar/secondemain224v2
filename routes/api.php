@@ -88,6 +88,9 @@ Route::prefix('v1')->group(function () {
         Route::post('wallet/topup', [WalletController::class, 'topup'])->middleware('throttle:10,1,topup');
         Route::get('wallet/withdrawals', [WalletController::class, 'withdrawals']);
         Route::post('wallet/withdrawals', [WalletController::class, 'requestWithdrawal'])->middleware('throttle:5,1,withdraw');
+        Route::post('deliveries/position', [DeliveryController::class, 'position'])->middleware('throttle:30,1,position')->name('api.deliveries.position');
+        Route::post('deliveries/position-token', [DeliveryController::class, 'createPositionToken'])->middleware('throttle:10,1,position-token');
+        Route::delete('deliveries/position-token', [DeliveryController::class, 'deletePositionToken']);
         Route::get('deliveries/current', [DeliveryController::class, 'current']);
         Route::get('deliveries/earnings', [DeliveryController::class, 'earnings']);
         Route::get('deliveries/available', [DeliveryController::class, 'available']);
