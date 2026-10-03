@@ -38,7 +38,7 @@ class SecurityRegressionTest extends TestCase
         $this->actingAs($otherUser, 'sanctum')
             ->postJson('/api/v1/payments/initiate', [
                 'order_id' => $order->id,
-                'methode' => 'orange_money',
+                'methode' => 'djomy',
             ])
             ->assertForbidden();
 

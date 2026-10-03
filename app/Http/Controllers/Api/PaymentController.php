@@ -114,7 +114,7 @@ class PaymentController extends Controller
     }
 
     public function djomyWebhook(Request $request) {
-        $signature = $request->header('X-Webhook-Signature');
+        $signature = (string) $request->header('X-Webhook-Signature', '');
         $payload = $request->getContent();
 
         if (!$this->djomy->verifyWebhookSignature($payload, $signature)) {
@@ -132,6 +132,11 @@ class PaymentController extends Controller
         $transactionId = $data['transactionId'] ?? null;
         $merchantRef = $data['merchantPaymentReference'] ?? null;
 
+        // Sans aucune référence, `where(..., null)` retrouverait n'importe quel paiement sans référence externe.
+        if (! $merchantRef && ! $transactionId) {
+            return response()->json(['message' => 'Invalid payload'], 400);
+        }
+
         $payment = $merchantRef
             ? Payment::where('reference', $merchantRef)->first()
             : Payment::where('external_ref', $transactionId)->first();
@@ -142,6 +147,11 @@ class PaymentController extends Controller
                 'merchantRef' => $merchantRef,
             ]);
             return response()->json(['message' => 'Payment not found'], 404);
+        }
+
+        // Un paiement déjà encaissé ne revient pas en arrière (notification tardive ou rejouée).
+        if ($payment->status->value === 'succes') {
+            return response()->json(['message' => 'OK']);
         }
 
         $status = match ($data['status'] ?? '') {
@@ -165,36 +175,17 @@ class PaymentController extends Controller
         return response()->json(['message' => 'OK']);
     }
 
-    public function omWebhook(Request $request) {
-        $result = $this->orangeMoney->processWebhook($request->all());
-        $payment = Payment::where('external_ref', $result['external_ref'])->first();
-        if ($payment) {
-            $payment->update([
-                'status' => $result['status'] === 'success' ? 'succes' : 'echoue',
-                'paid_at' => $result['status'] === 'success' ? now() : null,
-                'external_data' => $request->all(),
-            ]);
-            if ($result['status'] === 'success') {
-                event(new PaymentReceived($payment));
-            }
-        }
-        return response()->json(['message' => 'OK']);
+    /**
+     * Les passerelles Orange Money et MTN MoMo directes ne sont pas intégrées (Djomy les regroupe).
+     * Ces adresses ne vérifiaient aucune signature et marquaient « payé » le premier paiement sans
+     * référence externe : elles sont fermées, sans aucun effet.
+     */
+    public function omWebhook() {
+        return response()->json(['message' => 'Gone'], 410);
     }
 
-    public function momoWebhook(Request $request) {
-        $result = $this->mtnMomo->processWebhook($request->all());
-        $payment = Payment::where('external_ref', $result['external_ref'])->first();
-        if ($payment) {
-            $payment->update([
-                'status' => $result['status'] === 'success' ? 'succes' : 'echoue',
-                'paid_at' => $result['status'] === 'success' ? now() : null,
-                'external_data' => $request->all(),
-            ]);
-            if ($result['status'] === 'success') {
-                event(new PaymentReceived($payment));
-            }
-        }
-        return response()->json(['message' => 'OK']);
+    public function momoWebhook() {
+        return response()->json(['message' => 'Gone'], 410);
     }
 
     public function show($reference) {
