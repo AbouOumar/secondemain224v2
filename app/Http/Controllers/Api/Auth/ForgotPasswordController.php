@@ -18,13 +18,16 @@ class ForgotPasswordController extends Controller
             return response()->json(['message' => 'Si un compte correspond à cette adresse, un lien de réinitialisation vient d\'être envoyé.']);
         }
 
-        $request->validate(['phone' => 'required|string|exists:users,phone']);
-        $token = Str::random(60);
-        PasswordResetToken::updateOrCreate(
-            ['phone' => $request->phone],
-            ['token' => Hash::make($token), 'created_at' => now()]
-        );
-        return response()->json(['message' => 'Code de réinitialisation envoyé.']);
+        // Réponse identique que le numéro existe ou non (pas d'énumération des comptes).
+        $request->validate(['phone' => 'required|string|max:20']);
+        if (User::where('phone', $request->phone)->exists()) {
+            $token = Str::random(60);
+            PasswordResetToken::updateOrCreate(
+                ['phone' => $request->phone],
+                ['token' => Hash::make($token), 'created_at' => now()]
+            );
+        }
+        return response()->json(['message' => 'Si un compte correspond à ce numéro, un code de réinitialisation a été envoyé.']);
     }
 
     public function reset(Request $request) {

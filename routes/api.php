@@ -28,11 +28,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
-        Route::post('register', [RegisterController::class, 'store']);
-        Route::post('login', [LoginController::class, 'store']);
-        Route::post('forgot-password', [ForgotPasswordController::class, 'store']);
-        Route::post('reset-password', [ForgotPasswordController::class, 'reset']);
-        Route::post('oauth/google', [SocialAuthController::class, 'google']);
+        // Le 3e paramètre sépare les compteurs : sans lui, toutes ces routes partageraient la même limite.
+        Route::post('register', [RegisterController::class, 'store'])->middleware('throttle:5,1,register');
+        Route::post('login', [LoginController::class, 'store'])->middleware('throttle:10,1,login');
+        Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->middleware('throttle:5,1,forgot');
+        Route::post('reset-password', [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,1,reset');
+        Route::post('oauth/google', [SocialAuthController::class, 'google'])->middleware('throttle:10,1,google');
         Route::post('oauth/facebook', [SocialAuthController::class, 'facebook']);
     });
     Route::get('categories', [CategoryController::class, 'index']);
@@ -42,7 +43,7 @@ Route::prefix('v1')->group(function () {
     Route::get('partners', [PartnerController::class, 'index']);
     Route::get('partners/{slug}', [PartnerController::class, 'show']);
     Route::get('sellers/{user}/stats', [SellerController::class, 'stats']);
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('auth/logout', [LogoutController::class, 'store']);
         Route::post('auth/email/verification-notification', [EmailVerificationController::class, 'store'])->middleware('throttle:3,1');
         Route::post('auth/logout-all', [LogoutController::class, 'destroyAll']);
