@@ -11,8 +11,11 @@ class PartnerResource extends JsonResource
             'nom_magasin' => $this->nom_magasin,
             'slug' => $this->slug,
             'adresse' => $this->adresse,
+            'telephone' => $this->telephone,
             'description' => $this->description,
             'logo' => $this->logo ? asset('storage/'.$this->logo) : null,
+            'couverture' => $this->couverture ? asset('storage/'.$this->couverture) : null,
+            'horaire' => $this->horaire,
             'is_verified' => $this->is_verified,
         ];
     }

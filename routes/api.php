@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SellerController;
 use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\SearchAlertController;
+use App\Http\Controllers\Api\ShopController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -45,6 +46,12 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/logout', [LogoutController::class, 'store']);
         Route::post('auth/email/verification-notification', [EmailVerificationController::class, 'store'])->middleware('throttle:3,1');
         Route::post('auth/logout-all', [LogoutController::class, 'destroyAll']);
+        Route::middleware('role:revendeur_pro')->prefix('shop')->group(function () {
+            Route::get('/', [ShopController::class, 'show']);
+            Route::post('/', [ShopController::class, 'store']);
+            Route::put('/', [ShopController::class, 'update']);
+            Route::get('dashboard', [ShopController::class, 'dashboard']);
+        });
         Route::post('devices', [DeviceTokenController::class, 'store']);
         Route::delete('devices', [DeviceTokenController::class, 'destroy']);
         Route::get('profile', [ProfileController::class, 'show']);
