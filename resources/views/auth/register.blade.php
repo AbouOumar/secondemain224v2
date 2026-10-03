@@ -63,9 +63,10 @@
 <option value="">Sélectionnez un rôle *</option>
 <option value="acheteur" {{ old('role') === 'acheteur' ? 'selected' : '' }}>Acheteur</option>
 <option value="vendeur" {{ old('role') === 'vendeur' ? 'selected' : '' }}>Vendeur</option>
-<option value="revendeur_pro" {{ old('role') === 'revendeur_pro' ? 'selected' : '' }}>Revendeur</option>
-<option value="motard" {{ old('role') === 'motard' ? 'selected' : '' }}>Motard</option>
+<option value="revendeur_pro" {{ old('role') === 'revendeur_pro' ? 'selected' : '' }}>Revendeur pro (après examen de votre demande)</option>
+<option value="motard" {{ old('role') === 'motard' ? 'selected' : '' }}>Livreur / motard (après examen de votre demande)</option>
 </select>
+<small class="text-muted d-block mt-2 ms-3">Les comptes revendeur pro et livreur sont activés par notre équipe après examen : vous démarrez comme acheteur en attendant.</small>
 </div>
 <div class="form-check mb-4 ms-2">
 <input class="form-check-input" type="checkbox" name="newsletter" value="1" id="newsletter" @checked(old('newsletter'))>

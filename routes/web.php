@@ -203,6 +203,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/{payment}', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'show'])->name('show');
     });
 
+    Route::prefix('demandes-role')->name('role-requests.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\RoleRequestController::class, 'index'])->name('index');
+        Route::post('/{roleRequest}/accepter', [\App\Http\Controllers\Web\Admin\RoleRequestController::class, 'approve'])->name('approve');
+        Route::post('/{roleRequest}/refuser', [\App\Http\Controllers\Web\Admin\RoleRequestController::class, 'reject'])->name('reject');
+    });
+
     Route::prefix('retraits')->name('withdrawals.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Web\Admin\WithdrawalController::class, 'index'])->name('index');
         Route::post('/{withdrawal}/payer', [\App\Http\Controllers\Web\Admin\WithdrawalController::class, 'pay'])->name('pay');

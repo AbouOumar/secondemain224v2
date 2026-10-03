@@ -101,6 +101,9 @@
             <a href="{{ route('admin.payments.index') }}" class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
                 <i class='bx bx-credit-card'></i><span>Paiements</span>
             </a>
+            <a href="{{ route('admin.role-requests.index') }}" class="nav-link {{ request()->routeIs('admin.role-requests.*') ? 'active' : '' }}">
+                <i class='bx bx-id-card'></i><span>Demandes de rôle</span>
+            </a>
             <a href="{{ route('admin.withdrawals.index') }}" class="nav-link {{ request()->routeIs('admin.withdrawals.*') ? 'active' : '' }}">
                 <i class='bx bx-wallet'></i><span>Retraits</span>
             </a>

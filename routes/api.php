@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\SellerController;
 use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\SearchAlertController;
 use App\Http\Controllers\Api\ShopController;
+use App\Http\Controllers\Api\RoleRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -53,6 +54,9 @@ Route::prefix('v1')->group(function () {
             Route::put('/', [ShopController::class, 'update']);
             Route::get('dashboard', [ShopController::class, 'dashboard']);
         });
+        Route::get('role-request', [RoleRequestController::class, 'show']);
+        Route::post('role-request', [RoleRequestController::class, 'store'])->middleware('throttle:5,1,role-request');
+        Route::delete('role-request', [RoleRequestController::class, 'destroy']);
         Route::post('devices', [DeviceTokenController::class, 'store']);
         Route::delete('devices', [DeviceTokenController::class, 'destroy']);
         Route::get('profile', [ProfileController::class, 'show']);
