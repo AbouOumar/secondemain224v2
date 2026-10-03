@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Events\OrderCreated;
 use App\Services\Escrow\EscrowService;
+use App\Services\Order\OrderService;
+use App\Exceptions\OrderException;
 
 class OrderController extends Controller
 {
@@ -112,6 +114,39 @@ class OrderController extends Controller
 
         if ($order->escrow) {
             $this->escrow->release($order->escrow, 'confirmation_reception');
+        }
+
+        return new OrderResource($order);
+    }
+
+    /** Ajoute la livraison (ou change l'adresse) d'une commande non payée, par exemple née d'une offre acceptée. */
+    public function setDelivery(Request $request, string $reference, OrderService $orders) {
+        $order = Order::where('reference', $reference)->firstOrFail();
+        $this->authorize('changeDelivery', $order);
+
+        $data = $request->validate([
+            'delivery_adresse' => 'required|string|max:255',
+            'delivery_latitude' => 'nullable|numeric|between:-90,90',
+            'delivery_longitude' => 'nullable|numeric|between:-180,180',
+        ]);
+
+        try {
+            $order = $orders->setDelivery($order, $data['delivery_adresse'], $data['delivery_latitude'] ?? null, $data['delivery_longitude'] ?? null);
+        } catch (OrderException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->status);
+        }
+
+        return new OrderResource($order);
+    }
+
+    public function removeDelivery(string $reference, OrderService $orders) {
+        $order = Order::where('reference', $reference)->firstOrFail();
+        $this->authorize('changeDelivery', $order);
+
+        try {
+            $order = $orders->removeDelivery($order);
+        } catch (OrderException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->status);
         }
 
         return new OrderResource($order);

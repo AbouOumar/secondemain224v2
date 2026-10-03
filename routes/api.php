@@ -76,6 +76,8 @@ Route::prefix('v1')->group(function () {
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{reference}', [OrderController::class, 'show']);
+        Route::post('orders/{reference}/delivery', [OrderController::class, 'setDelivery']);
+        Route::delete('orders/{reference}/delivery', [OrderController::class, 'removeDelivery']);
         Route::post('orders/{reference}/cancel', [OrderController::class, 'cancel']);
         Route::post('orders/{reference}/confirm-receipt', [OrderController::class, 'confirmReceipt']);
         Route::get('seller/orders', [OrderController::class, 'sellerOrders']);
