@@ -12,6 +12,8 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->hasRealPhone() ? $this->phone : null,
             'role' => $this->role,
+            // Disponibilité du livreur : visible uniquement par lui-même.
+            'rider_status' => $this->when($request->user()?->id === $this->id, $this->rider_status),
             'status' => $this->status,
             'avatar' => $this->avatar ? asset('storage/'.$this->avatar) : null,
             'latitude' => $this->latitude,
