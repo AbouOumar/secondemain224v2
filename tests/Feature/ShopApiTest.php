@@ -114,6 +114,7 @@ class ShopApiTest extends TestCase
         $this->getJson('/api/v1/partners/vitrine')
             ->assertOk()
             ->assertJsonPath('partner.telephone', '622111111')
-            ->assertJsonPath('partner.adresse', 'Matam');
+            ->assertJsonPath('partner.adresse', 'Matam')
+            ->assertJsonPath('partner.user_id', Partner::where('slug', 'vitrine')->value('user_id'));
     }
 }
