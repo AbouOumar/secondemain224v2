@@ -18,15 +18,14 @@ class BoostController extends Controller
 
         $request->validate([
             'duree_heures' => 'nullable|integer|min:1|max:720',
-            'payment_id' => 'nullable|integer|exists:payments,id',
+            // Refusé : un paiement est toujours lié à une commande, il ne peut pas payer un Boost.
+            'payment_id' => 'prohibited',
+        ], [
+            'payment_id.prohibited' => 'Un Boost se paie avec le portefeuille.',
         ]);
 
         try {
-            $boost = $this->boostService->boost(
-                $article,
-                $request->duree_heures ?? 24,
-                $request->payment_id
-            );
+            $boost = $this->boostService->boost($article, $request->duree_heures ?? 24);
 
             return response()->json([
                 'success' => true,
