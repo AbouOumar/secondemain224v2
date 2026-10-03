@@ -25,6 +25,7 @@ class ArticleResource extends JsonResource
             'with_delivery' => $this->with_delivery,
             'delivery_prix' => $this->delivery_prix ? (float) $this->delivery_prix : null,
             'is_published' => $this->is_published,
+            'statut' => $this->statut,
             'is_boosted' => $this->is_boosted,
             'boosted_until' => $this->boosted_until,
             'is_verified' => $this->is_verified,

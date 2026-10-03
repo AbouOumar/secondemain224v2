@@ -101,7 +101,7 @@ class ArticleLifecycleTest extends TestCase
         $article = $this->article($owner);
         Sanctum::actingAs($owner);
 
-        $this->putJson("/api/v1/articles/{$article->id}", ['statut' => 'vendu'])->assertOk();
+        $this->putJson("/api/v1/articles/{$article->id}", ['statut' => 'vendu'])->assertOk()->assertJsonPath('data.statut', 'vendu');
         $this->assertSame('vendu', $article->fresh()->statut);
         $this->assertCount(0, $this->getJson('/api/v1/articles')->json('data'));
 
