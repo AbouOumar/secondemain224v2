@@ -56,11 +56,11 @@ class OrderController extends Controller
             Delivery::create([
                 'order_id' => $order->id,
                 'pickup_adresse' => $article->localisation,
-                'pickup_latitude' => $article->latitude,
-                'pickup_longitude' => $article->longitude,
+                'pickup_latitude' => $article->latitude ?? 0,
+                'pickup_longitude' => $article->longitude ?? 0,
                 'delivery_adresse' => $deliveryAdresse,
-                'delivery_latitude' => $deliveryLatitude,
-                'delivery_longitude' => $deliveryLongitude,
+                'delivery_latitude' => $deliveryLatitude ?? 0,
+                'delivery_longitude' => $deliveryLongitude ?? 0,
                 'prix' => $deliveryPrix,
                 'status' => 'en_attente',
             ]);

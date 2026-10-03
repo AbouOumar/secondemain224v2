@@ -12,6 +12,7 @@ class OrderResource extends JsonResource
             'buyer' => new UserResource($this->whenLoaded('buyer')),
             'seller' => new UserResource($this->whenLoaded('seller')),
             'article' => new ArticleResource($this->whenLoaded('article')),
+            'delivery' => new DeliveryResource($this->whenLoaded('delivery')),
             'prix_article' => (float) $this->prix_article,
             'with_delivery' => $this->with_delivery,
             'delivery_prix' => $this->delivery_prix ? (float) $this->delivery_prix : null,
