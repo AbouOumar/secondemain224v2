@@ -72,6 +72,8 @@ Route::prefix('v1')->group(function () {
         Route::get('payments/{reference}', [PaymentController::class, 'show']);
         Route::get('wallet', [WalletController::class, 'show']);
         Route::get('wallet/transactions', [WalletController::class, 'transactions']);
+        Route::get('deliveries/current', [DeliveryController::class, 'current']);
+        Route::get('deliveries/earnings', [DeliveryController::class, 'earnings']);
         Route::get('deliveries/available', [DeliveryController::class, 'available']);
         Route::post('deliveries/{delivery}/accept', [DeliveryController::class, 'accept']);
         Route::post('deliveries/{delivery}/pickup', [DeliveryController::class, 'pickup']);

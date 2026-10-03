@@ -18,25 +18,63 @@ class DeliveryController extends Controller
     ) {}
 
     public function available(Request $request) {
+        abort_unless($request->user()->role?->value === 'motard', 403);
+
         $deliveries = Delivery::where('status', 'en_attente')
-            ->with(['order.article', 'rider'])
+            ->whereNull('rider_id')
+            ->with(['order.article'])
             ->orderBy('created_at', 'desc')
             ->paginate(12);
         return DeliveryResource::collection($deliveries);
     }
 
+    /** Courses en cours du livreur (acceptées, en route, ou livrées en attente de confirmation du client). */
+    public function current(Request $request) {
+        abort_unless($request->user()->role?->value === 'motard', 403);
+
+        $deliveries = Delivery::where('rider_id', $request->user()->id)
+            ->whereIn('status', ['acceptee', 'en_cours', 'livree'])
+            ->with(['order.article', 'order.buyer', 'order.seller'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+        return DeliveryResource::collection($deliveries);
+    }
+
+    public function earnings(Request $request) {
+        abort_unless($request->user()->role?->value === 'motard', 403);
+
+        $now = now();
+        $base = Delivery::where('rider_id', $request->user()->id)->where('status', 'effectuee');
+
+        return response()->json(['data' => [
+            'aujourd_hui' => (int) (clone $base)->whereDate('completed_at', $now->toDateString())->sum('prix'),
+            'cette_semaine' => (int) (clone $base)->whereBetween('completed_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])->sum('prix'),
+            'ce_mois' => (int) (clone $base)->whereMonth('completed_at', $now->month)->whereYear('completed_at', $now->year)->sum('prix'),
+            'cette_annee' => (int) (clone $base)->whereYear('completed_at', $now->year)->sum('prix'),
+        ]]);
+    }
+
     public function accept(Delivery $delivery) {
         $this->authorize('accept', $delivery);
-        $delivery->update([
-            'status' => 'acceptee',
-            'accepted_at' => now(),
-        ]);
+
+        // Prise atomique : si un autre livreur a pris la course entre-temps, aucune ligne n'est modifiée.
+        $riderId = request()->user()->id;
+        $claimed = Delivery::whereKey($delivery->id)
+            ->whereIn('status', ['en_attente', 'assignee'])
+            ->where(fn ($q) => $q->whereNull('rider_id')->orWhere('rider_id', $riderId))
+            ->update(['rider_id' => $riderId, 'status' => 'acceptee', 'accepted_at' => now()]);
+
+        if (! $claimed) {
+            return response()->json(['message' => 'Cette livraison a déjà été prise par un autre livreur.'], 409);
+        }
+
+        $delivery->refresh();
         event(new DeliveryAccepted($delivery));
         return new DeliveryResource($delivery);
     }
 
     public function pickup(Delivery $delivery) {
-        $this->authorize('complete', $delivery);
+        $this->authorize('pickup', $delivery);
         $delivery->update([
             'status' => 'en_cours',
             'picked_up_at' => now(),
@@ -85,9 +123,10 @@ class DeliveryController extends Controller
     }
 
     public function tracking(Request $request, Delivery $delivery) {
+        $this->authorize('track', $delivery);
         $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ]);
         $this->trackingService->updatePosition($delivery, $request->latitude, $request->longitude);
         return response()->json(['message' => 'Position mise à jour.']);
