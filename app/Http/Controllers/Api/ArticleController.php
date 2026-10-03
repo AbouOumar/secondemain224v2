@@ -20,6 +20,9 @@ class ArticleController extends Controller
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
+        if ($request->filled('user_id')) {
+            $query->where('user_id', (int) $request->user_id);
+        }
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
