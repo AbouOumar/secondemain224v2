@@ -84,6 +84,8 @@ Route::prefix('v1')->group(function () {
         Route::get('wallet', [WalletController::class, 'show']);
         Route::get('wallet/transactions', [WalletController::class, 'transactions']);
         Route::post('wallet/topup', [WalletController::class, 'topup'])->middleware('throttle:10,1,topup');
+        Route::get('wallet/withdrawals', [WalletController::class, 'withdrawals']);
+        Route::post('wallet/withdrawals', [WalletController::class, 'requestWithdrawal'])->middleware('throttle:5,1,withdraw');
         Route::get('deliveries/current', [DeliveryController::class, 'current']);
         Route::get('deliveries/earnings', [DeliveryController::class, 'earnings']);
         Route::get('deliveries/available', [DeliveryController::class, 'available']);

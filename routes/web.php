@@ -203,6 +203,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/{payment}', [\App\Http\Controllers\Web\Admin\PaymentController::class, 'show'])->name('show');
     });
 
+    Route::prefix('retraits')->name('withdrawals.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\WithdrawalController::class, 'index'])->name('index');
+        Route::post('/{withdrawal}/payer', [\App\Http\Controllers\Web\Admin\WithdrawalController::class, 'pay'])->name('pay');
+        Route::post('/{withdrawal}/refuser', [\App\Http\Controllers\Web\Admin\WithdrawalController::class, 'reject'])->name('reject');
+    });
+
     Route::prefix('partenaires')->name('partners.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'index'])->name('index');
         Route::post('/{partner}/verifier', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'verify'])->name('verify');

@@ -101,6 +101,9 @@
             <a href="{{ route('admin.payments.index') }}" class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
                 <i class='bx bx-credit-card'></i><span>Paiements</span>
             </a>
+            <a href="{{ route('admin.withdrawals.index') }}" class="nav-link {{ request()->routeIs('admin.withdrawals.*') ? 'active' : '' }}">
+                <i class='bx bx-wallet'></i><span>Retraits</span>
+            </a>
             <a href="{{ route('admin.partners.index') }}" class="nav-link {{ request()->routeIs('admin.partners.*') ? 'active' : '' }}">
                 <i class='bx bx-store'></i><span>Magasins pro</span>
             </a>

@@ -8,6 +8,7 @@ use App\Models\IdentityVerification;
 use App\Models\Offer;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\WithdrawalRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -46,6 +47,10 @@ class AccountDeletionService
 
         if (Delivery::where('rider_id', $user->id)->whereIn('status', self::ACTIVE_DELIVERY_STATUSES)->exists()) {
             $blockers[] = 'Une livraison est en cours : terminez-la avant de supprimer votre compte.';
+        }
+
+        if (WithdrawalRequest::where('user_id', $user->id)->where('status', WithdrawalRequest::PENDING)->exists()) {
+            $blockers[] = 'Un retrait est en cours de traitement : attendez qu\'il soit terminé avant de supprimer votre compte.';
         }
 
         $balance = (float) ($user->wallet?->balance ?? 0);

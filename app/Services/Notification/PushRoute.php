@@ -19,6 +19,7 @@ class PushRoute
             'nouvelle_offre', 'offre_contree', 'offre_acceptee', 'offre_refusee' => '/offers/',
             'achat_valide', 'nouvelle_commande', 'livraison_acceptee', 'livraison_livree', 'livraison_terminee' => '/orders/',
             'livraison_disponible', 'livraison_attribuee' => '/deliveries/',
+            'retrait_traite' => '/wallet/',
             default => null,
         };
         if ($screen) {

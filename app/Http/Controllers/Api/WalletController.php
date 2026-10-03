@@ -3,9 +3,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentResource;
 use App\Http\Resources\TransactionResource;
+use App\Http\Resources\WithdrawalResource;
 use App\Models\Payment;
+use App\Models\WithdrawalRequest;
 use App\Services\Djomy\DjomyService;
+use App\Services\Wallet\InsufficientFundsException;
+use App\Services\Wallet\WalletService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class WalletController extends Controller
@@ -33,6 +38,50 @@ class WalletController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
         return TransactionResource::collection($transactions);
+    }
+
+    public function withdrawals(Request $request) {
+        $items = WithdrawalRequest::where('user_id', $request->user()->id)->latest()->paginate(15);
+
+        return WithdrawalResource::collection($items);
+    }
+
+    /**
+     * Demande de retrait vers Mobile Money. Le montant est débité tout de suite (il ne peut pas
+     * être dépensé entre-temps) ; l'équipe verse l'argent puis marque la demande payée, ou la
+     * refuse, auquel cas le montant revient dans le portefeuille.
+     */
+    public function requestWithdrawal(Request $request, WalletService $wallet) {
+        $data = $request->validate([
+            'montant' => 'required|integer|min:' . WithdrawalRequest::MIN_AMOUNT,
+            'phone' => 'required|string|max:20',
+            'operator' => 'required|string|in:orange_money,mtn_momo',
+        ]);
+        $user = $request->user();
+
+        if (WithdrawalRequest::where('user_id', $user->id)->where('status', WithdrawalRequest::PENDING)->exists()) {
+            return response()->json(['message' => 'Un retrait est déjà en cours de traitement. Attendez qu\'il soit terminé.'], 409);
+        }
+
+        try {
+            $withdrawal = DB::transaction(function () use ($user, $data, $wallet) {
+                $withdrawal = WithdrawalRequest::create([
+                    'reference' => 'RET-' . strtoupper(Str::random(10)),
+                    'user_id' => $user->id,
+                    'montant' => $data['montant'],
+                    'phone' => $data['phone'],
+                    'operator' => $data['operator'],
+                    'status' => WithdrawalRequest::PENDING,
+                ]);
+                $wallet->debit($user->id, (int) $data['montant'], 'retrait', $withdrawal->id, "Retrait {$withdrawal->reference}");
+
+                return $withdrawal;
+            });
+        } catch (InsufficientFundsException) {
+            return response()->json(['message' => 'Solde insuffisant pour ce retrait.'], 422);
+        }
+
+        return response()->json(['data' => new WithdrawalResource($withdrawal)], 201);
     }
 
     /**
