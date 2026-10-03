@@ -35,6 +35,11 @@ class SubscriptionController extends Controller
      */
     public function store(Request $request)
     {
+        // Aucun paiement d'abonnement n'est branché : sans cette garde, n'importe quel
+        // utilisateur connecté s'attribuait un plan « pro » gratuit et le badge vérifié.
+        // À rouvrir quand un paiement confirmé (webhook) créera l'abonnement.
+        return response()->json(['message' => "L'abonnement en ligne n'est pas encore disponible."], 503);
+
         $validator = Validator::make($request->all(), [
             'plan_type' => 'required|in:basic,pro,enterprise',
             'payment_method' => 'required|string',
