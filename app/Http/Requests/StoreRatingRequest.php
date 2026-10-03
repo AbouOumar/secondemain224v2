@@ -11,7 +11,7 @@ class StoreRatingRequest extends FormRequest
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:1000',
             'role_type' => 'required|string|in:vendeur,acheteur,motard',
-            'order_id' => 'nullable|exists:orders,id',
+            'order_id' => 'required|exists:orders,id',
         ];
     }
 }
