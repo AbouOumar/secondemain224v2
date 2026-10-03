@@ -68,7 +68,7 @@ class PushNotificationTest extends TestCase
             && $request->hasHeader('Authorization', 'Bearer oauth-token')
             && $request['message']['token'] === 'tok-1'
             && $request['message']['notification']['title'] === 'Nouvelle offre reçue'
-            && $request['message']['data'] === ['type' => 'nouvelle_offre', 'route' => '/article/?slug=moto-abc']);
+            && $request['message']['data'] === ['type' => 'nouvelle_offre', 'route' => '/offers/']);
     }
 
     public function test_unregistered_token_is_deleted(): void
@@ -114,8 +114,28 @@ class PushNotificationTest extends TestCase
 
     public function test_route_falls_back_when_article_is_gone(): void
     {
-        $this->assertSame('/profile/', PushRoute::forNotification('nouvelle_offre', ['article_id' => 999]));
-        $this->assertSame('/profile/', PushRoute::forNotification('achat.valide', ['order_reference' => 'CMD-1']));
+        $this->assertSame('/profile/', PushRoute::forNotification('alerte_recherche', ['article_id' => 999]));
+        $this->assertSame('/profile/', PushRoute::forNotification('type.inconnu', []));
+    }
+
+    public function test_each_notification_type_opens_its_screen_in_the_app(): void
+    {
+        foreach (['nouvelle_offre', 'offre_contree', 'offre_acceptee', 'offre_refusee'] as $type) {
+            $this->assertSame('/offers/', PushRoute::forNotification($type, []), $type);
+        }
+        foreach (['achat.valide', 'nouvelle.commande', 'livraison.acceptee', 'livraison.livree', 'livraison.terminee'] as $type) {
+            $this->assertSame('/orders/', PushRoute::forNotification($type, []), $type);
+        }
+        foreach (['livraison.disponible', 'livraison.attribuee'] as $type) {
+            $this->assertSame('/deliveries/', PushRoute::forNotification($type, []), $type);
+        }
+    }
+
+    public function test_search_alert_opens_the_matching_article(): void
+    {
+        $article = $this->article();
+
+        $this->assertSame('/article/?slug=moto-abc', PushRoute::forNotification('alerte_recherche', ['article_ids' => [$article->id]]));
     }
 
     public function test_configuration_errors_never_delete_devices(): void
