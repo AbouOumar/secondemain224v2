@@ -77,6 +77,11 @@ class ProfileController extends Controller
         return response()->json(['avatar' => asset('storage/'.$path)]);
     }
 
+    /** Identifiants de toutes les annonces enregistrées, en un seul appel (cœurs des listes). */
+    public function savedIds(Request $request) {
+        return response()->json(['data' => $request->user()->savedArticles()->pluck('articles.id')->all()]);
+    }
+
     public function saved(Request $request) {
         $articles = $request->user()->savedArticles()
             ->with(['images', 'category', 'user'])

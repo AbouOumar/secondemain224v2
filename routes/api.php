@@ -59,12 +59,14 @@ Route::prefix('v1')->group(function () {
         Route::put('profile', [ProfileController::class, 'update']);
         Route::delete('profile', [ProfileController::class, 'destroy']);
         Route::post('profile/avatar', [ProfileController::class, 'avatar']);
+        Route::get('profile/saved-ids', [ProfileController::class, 'savedIds']);
         Route::get('profile/saved-articles', [ProfileController::class, 'saved']);
         Route::get('profile/email-preferences', [EmailPreferenceController::class, 'show']);
         Route::put('profile/email-preferences', [EmailPreferenceController::class, 'update']);
         Route::post('articles', [ArticleController::class, 'store']);
         Route::put('articles/{article}', [ArticleController::class, 'update']);
         Route::delete('articles/{article}', [ArticleController::class, 'destroy']);
+        Route::delete('articles/{article}/images/{image}', [ArticleController::class, 'destroyImage']);
         Route::post('articles/{article}/boost', [BoostController::class, 'store']);
         Route::get('boost/pricing', [BoostController::class, 'pricing']);
         Route::post('articles/{article}/saved', [ArticleController::class, 'toggleSave']);

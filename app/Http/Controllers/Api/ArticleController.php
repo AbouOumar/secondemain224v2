@@ -4,13 +4,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreArticleRequest;
 use App\Http\Requests\UpdateArticleRequest;
 use App\Models\Article;
+use App\Models\ArticleImage;
 use App\Http\Resources\ArticleResource;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use App\Services\Article\ImageCompressionService;
 
 class ArticleController extends Controller
 {
+    private const MAX_IMAGES = 2;
+
     public function __construct(private ImageCompressionService $imageCompression) {}
 
     public function index(Request $request) {
@@ -49,7 +54,16 @@ class ArticleController extends Controller
 
     public function show(string $slug) {
         $article = Article::where('slug', $slug)->orWhere('id', $slug)->firstOrFail();
-        $article->increment('vue_count');
+
+        // Une annonce retirée, en attente ou d'un compte supprimé n'est visible que de son auteur (ou d'un admin),
+        // et l'auteur qui consulte sa propre annonce n'ajoute pas de vue.
+        $viewer = auth('sanctum')->user();
+        $isOwner = $viewer && ($viewer->id === $article->user_id || $viewer->role?->value === 'admin');
+        abort_unless($article->is_published || $isOwner, 404);
+        if (! $isOwner) {
+            $article->increment('vue_count');
+        }
+
         $article->load(['images', 'user', 'category']);
         return new ArticleResource($article);
     }
@@ -91,6 +105,14 @@ class ArticleController extends Controller
     public function update(UpdateArticleRequest $request, Article $article) {
         $this->authorize('update', $article);
 
+        // Les nouvelles photos s'ajoutent aux anciennes : deux au total, comme à la création.
+        $added = count($request->file('images', []));
+        if ($added > 0 && $article->images()->count() + $added > self::MAX_IMAGES) {
+            throw ValidationException::withMessages([
+                'images' => ['Une annonce ne peut avoir que ' . self::MAX_IMAGES . ' photos : retirez-en une avant d\'en ajouter.'],
+            ]);
+        }
+
         $data = $request->validated();
         unset($data['colors']);
         if ($request->filled('titre')) {
@@ -113,6 +135,20 @@ class ArticleController extends Controller
 
         $article->load(['images', 'user', 'category']);
         return new ArticleResource($article);
+    }
+
+    public function destroyImage(Article $article, ArticleImage $image) {
+        $this->authorize('update', $article);
+        abort_unless($image->article_id === $article->id, 404);
+
+        // Chemin brut (l'accesseur `url` renvoie une adresse complète) ; la vignette est supprimée par le modèle.
+        $path = $image->getAttributes()['url'] ?? null;
+        $image->delete();
+        if ($path) {
+            Storage::disk('public')->delete($path);
+        }
+
+        return response()->json(null, 204);
     }
 
     public function destroy(Article $article) {
