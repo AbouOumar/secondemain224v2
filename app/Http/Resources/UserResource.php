@@ -13,6 +13,8 @@ class UserResource extends JsonResource
             'phone' => $this->hasRealPhone() ? $this->phone : null,
             'role' => $this->role,
             // Disponibilité du livreur : visible uniquement par lui-même.
+            // Suppression de compte : un compte Google n'a pas de mot de passe à confirmer.
+            'needs_password' => $this->when($request->user()?->id === $this->id, fn () => ! $this->oauthProviders()->exists()),
             'rider_status' => $this->when($request->user()?->id === $this->id, $this->rider_status),
             'status' => $this->status,
             'avatar' => $this->avatar ? asset('storage/'.$this->avatar) : null,

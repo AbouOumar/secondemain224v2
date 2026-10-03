@@ -56,6 +56,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('devices', [DeviceTokenController::class, 'destroy']);
         Route::get('profile', [ProfileController::class, 'show']);
         Route::put('profile', [ProfileController::class, 'update']);
+        Route::delete('profile', [ProfileController::class, 'destroy']);
         Route::post('profile/avatar', [ProfileController::class, 'avatar']);
         Route::get('profile/saved-articles', [ProfileController::class, 'saved']);
         Route::get('profile/email-preferences', [EmailPreferenceController::class, 'show']);
