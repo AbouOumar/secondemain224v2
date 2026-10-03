@@ -129,6 +129,7 @@ Route::get('/vendeur/{user}', [SellerProfileController::class, 'show'])->name('s
 
 Route::get('/nous', [App\Http\Controllers\Web\NousController::class, 'index'])->name('nous');
 Route::view('/confidentialite', 'legal.privacy')->name('legal.privacy');
+Route::view('/suppression-compte', 'legal.account-deletion')->name('legal.account-deletion');
 Route::view('/cgu', 'legal.terms')->name('legal.terms');
 Route::get('/contact', [App\Http\Controllers\Web\ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [App\Http\Controllers\Web\ContactController::class, 'send'])->name('contact.send');
