@@ -2,122 +2,82 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\SubscriptionException;
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
-use App\Models\User;
+use App\Services\Subscription\SubscriptionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 
+/**
+ * Abonnements des revendeurs pro (routes réservées au rôle revendeur_pro). Le plan payant est
+ * débité du portefeuille ; le badge « vérifié » dure autant que l'abonnement.
+ */
 class SubscriptionController extends Controller
 {
-    /**
-     * Get current user's subscription
-     */
+    public function __construct(private SubscriptionService $subscriptions) {}
+
+    public function plans()
+    {
+        $plans = collect($this->subscriptions->plans())->map(fn (array $plan, string $key) => [
+            'key' => $key,
+            'label' => $plan['label'],
+            'tagline' => $plan['tagline'],
+            'price' => (int) $plan['price'],
+            'badge' => (bool) $plan['badge'],
+            'features' => $plan['features'],
+        ])->values();
+
+        return response()->json(['data' => $plans, 'duration_days' => (int) config('subscriptions.duration_days')]);
+    }
+
     public function current(Request $request)
     {
-        $subscription = Auth::user()->subscription;
-        
-        if (!$subscription) {
-            return response()->json([
-                'message' => 'No active subscription found',
-                'subscription' => null
-            ], 404);
-        }
-        
-        return response()->json([
-            'subscription' => $subscription
-        ]);
+        $subscription = Subscription::where('user_id', $request->user()->id)->first();
+
+        return response()->json(['subscription' => $subscription ? $this->format($subscription) : null]);
     }
 
-    /**
-     * Create or update subscription
-     */
     public function store(Request $request)
     {
-        // Aucun paiement d'abonnement n'est branché : sans cette garde, n'importe quel
-        // utilisateur connecté s'attribuait un plan « pro » gratuit et le badge vérifié.
-        // À rouvrir quand un paiement confirmé (webhook) créera l'abonnement.
-        return response()->json(['message' => "L'abonnement en ligne n'est pas encore disponible."], 503);
+        $data = $request->validate(['plan_type' => 'required|string|in:basic,pro,enterprise']);
 
-        $validator = Validator::make($request->all(), [
-            'plan_type' => 'required|in:basic,pro,enterprise',
-            'payment_method' => 'required|string',
-            // In a real implementation, you would validate payment details here
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        try {
+            $subscription = $this->subscriptions->subscribe($request->user(), $data['plan_type']);
+        } catch (SubscriptionException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->status);
         }
 
-        $user = Auth::user();
-        $subscription = $user->subscription()
-            ->updateOrCreate(
-                [],
-                [
-                    'plan_type' => $request->plan_type,
-                    'status' => 'active',
-                    'starts_at' => now(),
-                    'ends_at' => now()->addMonth(), // Monthly subscription
-                    'provider' => $request->payment_method,
-                ]
-            );
-
-        // Update user's verified status for pro plan
-        if ($request->plan_type === 'pro') {
-            $user->update([
-                'is_verified' => true,
-                'verified_at' => now(),
-            ]);
-        }
-
-        return response()->json([
-            'message' => 'Subscription created successfully',
-            'subscription' => $subscription
-        ], 201);
+        return response()->json(['message' => 'Abonnement activé.', 'subscription' => $this->format($subscription)], 201);
     }
 
-    /**
-     * Cancel subscription
-     */
     public function cancel(Request $request)
     {
-        $subscription = Auth::user()->subscription;
-
-        if (!$subscription) {
-            return response()->json([
-                'message' => 'No active subscription found'
-            ], 404);
+        if (! $this->subscriptions->cancel($request->user())) {
+            return response()->json(['message' => "Vous n'avez pas d'abonnement actif."], 404);
         }
 
-        $subscription->update([
-            'status' => 'cancelled',
-            'ends_at' => now(),
-        ]);
-
-        // If cancelling pro plan, remove verified status
-        if ($subscription->plan_type === 'pro') {
-            Auth::user()->update([
-                'is_verified' => false,
-            ]);
-        }
-
-        return response()->json([
-            'message' => 'Subscription cancelled successfully'
-        ]);
+        return response()->json(['message' => 'Abonnement annulé.']);
     }
 
-    /**
-     * Get subscription history
-     */
     public function history(Request $request)
     {
-        $subscriptions = Auth::user()->subscriptions()
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $subscriptions = $request->user()->subscriptions()->orderBy('created_at', 'desc')->get();
 
-        return response()->json([
-            'subscriptions' => $subscriptions
-        ]);
+        return response()->json(['subscriptions' => $subscriptions->map(fn (Subscription $s) => $this->format($s))]);
+    }
+
+    private function format(Subscription $subscription): array
+    {
+        $plan = config("subscriptions.plans.{$subscription->plan_type}");
+
+        return [
+            'id' => $subscription->id,
+            'plan_type' => $subscription->plan_type,
+            'label' => $plan['label'] ?? $subscription->plan_type,
+            'status' => $subscription->status,
+            'is_active' => $subscription->isActive(),
+            'starts_at' => $subscription->starts_at,
+            'ends_at' => $subscription->ends_at,
+        ];
     }
 }

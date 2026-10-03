@@ -12,6 +12,8 @@ Schedule::command('boosts:expire')->everyMinute();
 
 Schedule::command('escrow:auto-release')->daily();
 
+Schedule::command('subscriptions:expire')->hourly();
+
 Schedule::command('offers:expire-stale')->hourly();
 
 Schedule::command('search-alerts:check')->daily();

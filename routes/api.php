@@ -130,7 +130,8 @@ Route::prefix('v1')->group(function () {
             });
         });
 
-        Route::prefix('subscription')->group(function () {
+        Route::prefix('subscription')->middleware('role:revendeur_pro')->group(function () {
+            Route::get('plans', [App\Http\Controllers\Api\SubscriptionController::class, 'plans'])->name('api.subscription.plans');
             Route::get('current', [App\Http\Controllers\Api\SubscriptionController::class, 'current'])->name('api.subscription.current');
             Route::post('store', [App\Http\Controllers\Api\SubscriptionController::class, 'store'])->name('api.subscription.store');
             Route::post('cancel', [App\Http\Controllers\Api\SubscriptionController::class, 'cancel'])->name('api.subscription.cancel');
