@@ -132,7 +132,7 @@
 @endif
 @endauth
 
-<div class="d-flex gap-2 mt-3">
+<div class="d-flex gap-2 mt-3 position-relative">
 <button type="button" class="btn btn-outline-secondary" id="saveBtn" data-saved="{{ in_array($article->id, $savedIds ?? []) ? '1' : '0' }}" onclick="toggleFavorite({{ $article->id }}, this)">
 <i class="{{ in_array($article->id, $savedIds ?? []) ? 'bx bxs-heart' : 'bx bx-heart' }}"></i>
 <span>{{ in_array($article->id, $savedIds ?? []) ? 'Enregistré' : 'Enregistrer' }}</span>
@@ -287,8 +287,9 @@ const articleId = {{ $article->id }};
 
 document.addEventListener('click', e => {
 document.querySelectorAll('.share-popup').forEach(sp => sp.style.display = 'none');
-if (e.target.classList.contains('share-btn')) {
-const popup = e.target.parentNode.querySelector('.share-popup');
+const shareBtn = e.target.closest('.share-btn');
+if (shareBtn) {
+const popup = shareBtn.parentNode.querySelector('.share-popup');
 if (popup) popup.style.display = 'block';
 }
 });
