@@ -410,6 +410,24 @@
             color: #fff;
         }
         
+        /* Menu déplié dès 768px (ex. mode « version ordinateur » sur téléphone, ~980px) :
+           on resserre les liens pour que tout tienne sur une ligne. */
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .navbar-expand-md .navbar-nav .nav-link {
+                padding-left: 0.4rem !important;
+                padding-right: 0.4rem !important;
+                font-size: 0.85rem;
+                white-space: nowrap;
+            }
+            .navbar-expand-md .navbar-nav {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+            .navbar-expand-md .navbar-brand .brand {
+                font-size: 1.05rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .navbar-brand {
                 font-size: 1.2rem;
@@ -602,7 +620,10 @@
         }
         @keyframes pageFadeIn {
             from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            /* transform: none (et non translateY(0)) : une transformation, même
+               neutre, conservée par "forwards" fait de <body> le repère des
+               éléments position:fixed et décale les fenêtres modales. */
+            to { opacity: 1; transform: none; }
         }
         body.page-transitioning {
             opacity: 0;
@@ -625,7 +646,7 @@
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="padding: 0;">
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark" style="padding: 0;">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url('/') }}">
                     <img src="{{ asset('assets/img/icon.png') }}" width="44" height="44" style="border-radius: 50px; object-fit: cover;">
@@ -640,7 +661,7 @@
                 
                 <!-- Menu -->
                 <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
-                    <ul class="navbar-nav align-items-lg-center text-center">
+                    <ul class="navbar-nav align-items-md-center text-center">
                         <li class="nav-item">
                             <a class="nav-link px-3" href="{{ url('/') }}">Accueil</a>
                         </li>
@@ -697,7 +718,7 @@
                         <li class="nav-item">
                             <a class="nav-link px-3" href="{{ url('/profile') }}">Profil</a>
                         </li>
-                        <li class="nav-item mt-2 mt-lg-0">
+                        <li class="nav-item mt-2 mt-md-0">
                             <a class="btn btn-outline-light px-3" href="{{ url('/logout') }}">
                                 <i class='bx bx-log-out' style="font-size: 1.2rem;"></i>
                             </a>

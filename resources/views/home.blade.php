@@ -105,7 +105,7 @@
 </select>
 </div>
 <div class="col-md-1 col-12 d-grid">
-<button class="btn btn-primary btn-sm" onclick="applyFilters()"><i class='bx bx-search'></i></button>
+<button class="btn btn-primary btn-sm px-0" onclick="applyFilters()"><i class='bx bx-search'></i></button>
 </div>
 </div>
 <div class="text-end mt-2">
