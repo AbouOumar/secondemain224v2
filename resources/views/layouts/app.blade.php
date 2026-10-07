@@ -351,11 +351,11 @@
             padding: 60px 0 20px 0;
         }
         
-        .footer h5 {
+        footer h5 {
             font-family: "Raleway", sans-serif;
             font-weight: 700;
             margin-bottom: 20px;
-            color: #212529;
+            color: #fff;
         }
         
         .footer p {
