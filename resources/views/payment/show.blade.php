@@ -27,7 +27,7 @@
                             <h5 class="fw-bold mb-1">{{ $order->article->titre }}</h5>
                             <p class="text-muted small mb-2">Réf: {{ $order->reference }}</p>
                             <p class="mb-1"><strong>Prix article :</strong> {{ number_format($order->prix_article, 0, ',', ' ') }} GNF</p>
-                            @if($order->with_delivery)
+                            @if($order->with_delivery && $order->delivery_prix > 0)
                                 <p class="mb-1"><strong>Livraison :</strong> {{ number_format($order->delivery_prix, 0, ',', ' ') }} GNF</p>
                             @endif
                             <hr>

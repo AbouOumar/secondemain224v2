@@ -114,13 +114,15 @@
 @endif
 
 <div class="d-flex gap-2 mt-4">
+@if($article->with_delivery)
 <form method="POST" action="{{ route('orders.create', ['article' => $article->id, 'delivery' => 1]) }}" class="flex-grow-1">
 @csrf
 <button type="submit" class="btn btn-primary btn-lg w-100"><i class="bx bx-package"></i> Acheter avec livraison</button>
 </form>
+@endif
 <form method="POST" action="{{ route('orders.create', ['article' => $article->id, 'delivery' => 0]) }}" class="flex-grow-1">
 @csrf
-<button type="submit" class="btn btn-outline-primary btn-lg w-100"><i class="bx bx-cart"></i> Acheter sans livraison</button>
+<button type="submit" class="btn {{ $article->with_delivery ? 'btn-outline-primary' : 'btn-primary' }} btn-lg w-100"><i class="bx bx-cart"></i> {{ $article->with_delivery ? 'Acheter sans livraison' : 'Acheter' }}</button>
 </form>
 </div>
 
@@ -215,7 +217,7 @@
 <span class="badge bg-light text-dark px-3 py-2"><i class="bx bx-credit-card"></i> Yup</span>
 </div>
 
-@if($article->with_delivery)
+@if($article->with_delivery && $article->delivery_prix > 0)
 <hr>
 <h6 class="fw-bold">Livraison</h6>
 <p class="text-muted small mb-0">Prix livraison : {{ number_format($article->delivery_prix, 0, ',', ' ') }} GNF</p>
