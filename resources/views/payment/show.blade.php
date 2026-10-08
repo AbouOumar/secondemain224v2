@@ -58,7 +58,7 @@
                             <label class="form-label fw-medium">Numéro de téléphone *</label>
                             <input type="tel" name="phone" class="form-control form-control-lg"
                                    value="{{ old('phone', auth()->user()->hasRealPhone() ? auth()->user()->phone : '') }}"
-                                   placeholder="Ex: 622 30 00 01" required>
+                                   placeholder="Ex: 622 30 00 01" required inputmode="tel" pattern="\+?[0-9 ]{6,20}" maxlength="20" title="Chiffres uniquement" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')">
                             <small class="text-muted">Vous recevrez une notification sur ce numéro pour confirmer le paiement.</small>
                         </div>
 

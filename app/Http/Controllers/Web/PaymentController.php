@@ -44,7 +44,7 @@ class PaymentController extends Controller
         }
 
         $data = $request->validate([
-            'phone' => 'required|string|max:20',
+            'phone' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9 ]{6,20}$/'],
         ]);
 
         $reference = 'PAY-' . strtoupper(Str::random(10));

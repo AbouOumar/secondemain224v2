@@ -9,7 +9,7 @@ class ProcessPaymentRequest extends FormRequest
         return [
             'order_id' => 'required|exists:orders,id',
             'methode' => 'required|string|in:orange_money,mtn_momo,carte_bancaire,portefeuille,djomy',
-            'payer_phone' => 'nullable|string|max:20',
+            'payer_phone' => ['nullable', 'string', 'max:20', 'regex:/^\+?[0-9 ]{6,20}$/'],
             'return_url' => 'nullable|url',
             'cancel_url' => 'nullable|url',
         ];
