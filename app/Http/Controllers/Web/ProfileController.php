@@ -172,7 +172,7 @@ class ProfileController extends Controller
         $request->validate([
             'name' => 'required|string|max:191',
             'email' => 'nullable|email|unique:users,email,' . $user->id,
-            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+            'phone' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9 ]{6,20}$/', 'unique:users,phone,' . $user->id],
         ]);
 
         $user->update($request->only('name', 'email', 'phone'));

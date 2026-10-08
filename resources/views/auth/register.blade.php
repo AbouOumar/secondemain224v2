@@ -38,7 +38,7 @@
             <option value="+245">🇬🇼 +245</option>
             <option value="+33">🇫🇷 +33</option>
         </select>
-        <input type="text" id="phone_number" class="form-control" placeholder="6XX XX XX XX *" required inputmode="numeric" autocomplete="tel-national">
+        <input type="text" id="phone_number" class="form-control" placeholder="6XX XX XX XX *" required inputmode="numeric" pattern="[0-9 ]{6,15}" maxlength="15" autocomplete="tel-national" title="Chiffres uniquement">
     </div>
     <input type="hidden" name="phone" id="phone_hidden" value="{{ old('phone') }}">
 </div>
@@ -103,6 +103,10 @@ Continuer avec Google
         icon.classList.toggle('bx-show', !showing);
         icon.classList.toggle('bx-hide', showing);
     }
+
+    document.getElementById('phone_number').addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9 ]/g, '');
+    });
 
     document.getElementById('register-form').addEventListener('submit', function () {
         const code = document.getElementById('phone_code').value;

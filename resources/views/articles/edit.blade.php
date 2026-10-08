@@ -104,7 +104,7 @@
 </div>
 <div id="deliveryPriceField" class="{{ old('with_delivery', $article->with_delivery) ? '' : 'd-none' }}">
 <label class="form-label">Prix de la livraison (GNF)</label>
-<input type="number" name="delivery_price" class="form-control form-control-lg" placeholder="Ex: 15000" value="{{ old('delivery_price', $article->delivery_price) }}">
+<input type="number" name="delivery_price" class="form-control form-control-lg" placeholder="Ex: 15000" value="{{ old('delivery_price', $article->delivery_prix) }}">
 </div>
 </div>
 

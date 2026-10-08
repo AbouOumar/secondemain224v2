@@ -54,7 +54,7 @@
 
 <div class="mb-4">
 <label class="form-label">Téléphone</label>
-<input type="text" name="phone" class="form-control form-control-lg" value="{{ old('phone', $user->hasRealPhone() ? $user->phone : '') }}" placeholder="Ex. : 620 00 00 00" required>
+<input type="text" name="phone" class="form-control form-control-lg" value="{{ old('phone', $user->hasRealPhone() ? $user->phone : '') }}" placeholder="Ex. : 620 00 00 00" required inputmode="tel" pattern="\+?[0-9 ]{6,20}" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')">
 </div>
 
 <hr>

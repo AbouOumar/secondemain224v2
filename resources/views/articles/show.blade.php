@@ -114,13 +114,15 @@
 @endif
 
 <div class="d-flex gap-2 mt-4">
+@if($article->with_delivery)
 <form method="POST" action="{{ route('orders.create', ['article' => $article->id, 'delivery' => 1]) }}" class="flex-grow-1">
 @csrf
 <button type="submit" class="btn btn-primary btn-lg w-100"><i class="bx bx-package"></i> Acheter avec livraison</button>
 </form>
+@endif
 <form method="POST" action="{{ route('orders.create', ['article' => $article->id, 'delivery' => 0]) }}" class="flex-grow-1">
 @csrf
-<button type="submit" class="btn btn-outline-primary btn-lg w-100"><i class="bx bx-cart"></i> Acheter sans livraison</button>
+<button type="submit" class="btn {{ $article->with_delivery ? 'btn-outline-primary' : 'btn-primary' }} btn-lg w-100"><i class="bx bx-cart"></i> {{ $article->with_delivery ? 'Acheter sans livraison' : 'Acheter' }}</button>
 </form>
 </div>
 
@@ -132,7 +134,7 @@
 @endif
 @endauth
 
-<div class="d-flex gap-2 mt-3">
+<div class="d-flex gap-2 mt-3 position-relative">
 <button type="button" class="btn btn-outline-secondary" id="saveBtn" data-saved="{{ in_array($article->id, $savedIds ?? []) ? '1' : '0' }}" onclick="toggleFavorite({{ $article->id }}, this)">
 <i class="{{ in_array($article->id, $savedIds ?? []) ? 'bx bxs-heart' : 'bx bx-heart' }}"></i>
 <span>{{ in_array($article->id, $savedIds ?? []) ? 'Enregistré' : 'Enregistrer' }}</span>
@@ -215,7 +217,7 @@
 <span class="badge bg-light text-dark px-3 py-2"><i class="bx bx-credit-card"></i> Yup</span>
 </div>
 
-@if($article->with_delivery)
+@if($article->with_delivery && $article->delivery_prix > 0)
 <hr>
 <h6 class="fw-bold">Livraison</h6>
 <p class="text-muted small mb-0">Prix livraison : {{ number_format($article->delivery_prix, 0, ',', ' ') }} GNF</p>
@@ -287,8 +289,9 @@ const articleId = {{ $article->id }};
 
 document.addEventListener('click', e => {
 document.querySelectorAll('.share-popup').forEach(sp => sp.style.display = 'none');
-if (e.target.classList.contains('share-btn')) {
-const popup = e.target.parentNode.querySelector('.share-popup');
+const shareBtn = e.target.closest('.share-btn');
+if (shareBtn) {
+const popup = shareBtn.parentNode.querySelector('.share-popup');
 if (popup) popup.style.display = 'block';
 }
 });

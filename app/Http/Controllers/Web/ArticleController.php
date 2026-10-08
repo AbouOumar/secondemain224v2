@@ -86,8 +86,8 @@ class ArticleController extends Controller
             'currency' => $request->currency ?? 'GNF',
             'localisation' => $request->localisation,
             'etat' => $request->etat ?? 'bon',
-            'with_delivery' => $request->boolean('with_delivery', true),
-            'delivery_prix' => $request->delivery_price,
+            'with_delivery' => $request->boolean('with_delivery'),
+            'delivery_prix' => $request->boolean('with_delivery') ? $request->delivery_price : null,
             'is_published' => true,
             'statut' => 'en_vente',
             'stock' => $request->stock ?? 1,
@@ -138,9 +138,11 @@ class ArticleController extends Controller
 
         $data = $request->only([
             'titre', 'description', 'prix', 'currency', 'category_id',
-            'localisation', 'etat', 'with_delivery', 'stock'
+            'localisation', 'etat', 'stock'
         ]);
-        $data['delivery_prix'] = $request->delivery_price;
+        // Une case décochée n'envoie rien : on la lit explicitement pour pouvoir désactiver la livraison.
+        $data['with_delivery'] = $request->boolean('with_delivery');
+        $data['delivery_prix'] = $data['with_delivery'] ? $request->delivery_price : null;
         $data['colors'] = $this->sanitizeColors($request->colors);
         $article->update($data);
 

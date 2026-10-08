@@ -105,7 +105,7 @@
 </select>
 </div>
 <div class="col-md-1 col-12 d-grid">
-<button class="btn btn-primary btn-sm" onclick="applyFilters()"><i class='bx bx-search'></i></button>
+<button class="btn btn-primary btn-sm px-0" onclick="applyFilters()"><i class='bx bx-search'></i></button>
 </div>
 </div>
 <div class="text-end mt-2">
@@ -257,8 +257,9 @@ fetch('{{ route('alerts.store') }}', {
 
 document.addEventListener('click', e => {
 document.querySelectorAll('.share-popup').forEach(sp => sp.style.display = 'none');
-if (e.target.classList.contains('share-btn')) {
-const popup = e.target.parentNode.querySelector('.share-popup');
+const shareBtn = e.target.closest('.share-btn');
+if (shareBtn) {
+const popup = shareBtn.parentNode.querySelector('.share-popup');
 if (popup) popup.style.display = 'block';
 }
 });

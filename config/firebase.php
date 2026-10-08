@@ -1,6 +1,7 @@
 <?php
 return [
-    'server_key' => env('FIREBASE_SERVER_KEY'),
-    'sender_id' => env('FIREBASE_SENDER_ID'),
-    'api_url' => 'https://fcm.googleapis.com/fcm/send',
+    // Firebase Cloud Messaging, API HTTP v1 (l'ancienne « clé serveur » est arrêtée par Google).
+    'project_id' => env('FIREBASE_PROJECT_ID'),
+    // Fichier JSON du compte de service : secret, hors Git (storage/app/private est ignoré).
+    'credentials' => env('FIREBASE_CREDENTIALS', storage_path('app/private/firebase-service-account.json')),
 ];

@@ -9,7 +9,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             'name' => 'nullable|string|max:191',
             'email' => 'nullable|email|unique:users,email,'.$this->user()->id,
-            'phone' => 'nullable|string|max:20|unique:users,phone,'.$this->user()->id,
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^\+?[0-9 ]{6,20}$/', 'unique:users,phone,'.$this->user()->id],
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
