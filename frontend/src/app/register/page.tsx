@@ -107,7 +107,7 @@ export default function RegisterPage() {
               type="tel"
               required
               value={phoneNumber}
-              onChange={(event) => setPhoneNumber(event.target.value)}
+              onChange={(event) => setPhoneNumber(event.target.value.replace(/[^0-9 ]/g, ""))}
               className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
               placeholder="6XX XX XX XX"
             />

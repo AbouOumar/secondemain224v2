@@ -56,7 +56,7 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:191',
             'email' => 'nullable|email|unique:users,email',
-            'phone' => 'required|string|max:20|unique:users,phone',
+            'phone' => ['required', 'string', 'max:20', 'regex:/^\+[0-9]{8,15}$/', 'unique:users,phone'],
             'password' => 'required|string|min:8|confirmed',
             'role' => 'nullable|string|in:acheteur,vendeur,revendeur_pro,motard',
             'newsletter' => 'nullable|boolean',
