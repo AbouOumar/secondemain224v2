@@ -292,14 +292,6 @@
 <script>
 const articleId = {{ $article->id }};
 
-document.addEventListener('click', e => {
-document.querySelectorAll('.share-popup').forEach(sp => sp.style.display = 'none');
-const shareBtn = e.target.closest('.share-btn');
-if (shareBtn) {
-const popup = shareBtn.parentNode.querySelector('.share-popup');
-if (popup) popup.style.display = 'block';
-}
-});
 </script>
 <script>
 // Zoom photo qui suit le pointeur : au survol de la photo principale, on
