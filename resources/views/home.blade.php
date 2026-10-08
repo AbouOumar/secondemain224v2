@@ -255,13 +255,5 @@ fetch('{{ route('alerts.store') }}', {
 .catch(() => alert('Erreur réseau. Veuillez réessayer.'));
 }
 
-document.addEventListener('click', e => {
-document.querySelectorAll('.share-popup').forEach(sp => sp.style.display = 'none');
-const shareBtn = e.target.closest('.share-btn');
-if (shareBtn) {
-const popup = shareBtn.parentNode.querySelector('.share-popup');
-if (popup) popup.style.display = 'block';
-}
-});
 </script>
 @endpush

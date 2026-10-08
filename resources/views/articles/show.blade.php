@@ -15,13 +15,18 @@
 <style>
 .article-detail-container {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: 2rem;
   align-items: start;
 }
+/* Sans min-width:0, la rangée « Annonces similaires » (défilement horizontal)
+   élargit la colonne et la page déborde de l'écran. */
+.article-detail-container > * {
+  min-width: 0;
+}
 @media (max-width: 991px) {
   .article-detail-container {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .article-sidebar-wrapper {
@@ -287,14 +292,6 @@
 <script>
 const articleId = {{ $article->id }};
 
-document.addEventListener('click', e => {
-document.querySelectorAll('.share-popup').forEach(sp => sp.style.display = 'none');
-const shareBtn = e.target.closest('.share-btn');
-if (shareBtn) {
-const popup = shareBtn.parentNode.querySelector('.share-popup');
-if (popup) popup.style.display = 'block';
-}
-});
 </script>
 <script>
 // Zoom photo qui suit le pointeur : au survol de la photo principale, on

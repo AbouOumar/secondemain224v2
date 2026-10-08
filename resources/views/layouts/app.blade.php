@@ -548,6 +548,12 @@
             z-index: 10;
             padding: 4px;
         }
+        .share-popup.is-open {
+            position: fixed;
+            right: auto;
+            width: 200px;
+            z-index: 2000;
+        }
         .share-popup .btn {
             border-radius: 6px;
             font-size: 0.8rem;
@@ -618,12 +624,12 @@
             opacity: 0;
             animation: pageFadeIn 0.45s ease forwards;
         }
+        /* Opacité seulement : un transform conservé par "forwards" (même translateY(0)
+           ou none, le navigateur le garde en matrix) fait de <body> le repère des
+           éléments position:fixed et décale modales et menus (ex. « Partager »). */
         @keyframes pageFadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            /* transform: none (et non translateY(0)) : une transformation, même
-               neutre, conservée par "forwards" fait de <body> le repère des
-               éléments position:fixed et décale les fenêtres modales. */
-            to { opacity: 1; transform: none; }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         body.page-transitioning {
             opacity: 0;
@@ -842,6 +848,38 @@
         }
     </script>
     <script>
+        // Menu « Partager » : déplacé dans <body> et positionné en fixed à l'ouverture,
+        // sinon il est rogné par overflow:hidden des cartes (.article-card) ou masqué
+        // par un bloc voisin plus haut dans l'empilement (colonne latérale sticky).
+        (function () {
+            function closeAll() {
+                document.querySelectorAll('.share-popup.is-open').forEach(sp => {
+                    sp.classList.remove('is-open');
+                    sp.style.display = 'none';
+                });
+            }
+            document.addEventListener('click', e => {
+                const shareBtn = e.target.closest('.share-btn');
+                const wasOpen = shareBtn && shareBtn._popup && shareBtn._popup.classList.contains('is-open');
+                closeAll();
+                if (!shareBtn || wasOpen) return;
+                const popup = shareBtn._popup || shareBtn.parentNode.querySelector('.share-popup');
+                if (!popup) return;
+                shareBtn._popup = popup;
+                document.body.appendChild(popup);
+                popup.classList.add('is-open');
+                popup.style.display = 'block';
+                const r = shareBtn.getBoundingClientRect();
+                const w = popup.offsetWidth, h = popup.offsetHeight;
+                const left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8));
+                const top = (r.bottom + 4 + h > window.innerHeight && r.top - 4 - h > 0) ? r.top - 4 - h : r.bottom + 4;
+                popup.style.left = left + 'px';
+                popup.style.top = top + 'px';
+            });
+            window.addEventListener('scroll', closeAll, { passive: true });
+            window.addEventListener('resize', closeAll);
+        })();
+
         function copyLink(url) {
             navigator.clipboard.writeText(url).then(() => {
                 alert('Lien copié !');
