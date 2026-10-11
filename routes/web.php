@@ -20,15 +20,15 @@ Route::get('/search', [HomeController::class, 'search'])->name('search');
 
 Route::prefix('password')->name('password.')->group(function () {
     Route::get('/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('request');
-    Route::post('/forgot', [ForgotPasswordController::class, 'sendResetLink'])->name('email');
+    Route::post('/forgot', [ForgotPasswordController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('email');
     Route::get('/reset/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('reset');
-    Route::post('/reset', [ForgotPasswordController::class, 'reset'])->name('store');
+    Route::post('/reset', [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,1')->name('store');
 });
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])

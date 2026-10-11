@@ -27,11 +27,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
-        Route::post('register', [RegisterController::class, 'store']);
-        Route::post('login', [LoginController::class, 'store']);
-        Route::post('forgot-password', [ForgotPasswordController::class, 'store']);
-        Route::post('reset-password', [ForgotPasswordController::class, 'reset']);
-        Route::post('oauth/google', [SocialAuthController::class, 'google']);
+        // Limitation des tentatives : freine le brute-force et le bourrage d'identifiants.
+        Route::post('register', [RegisterController::class, 'store'])->middleware('throttle:10,1');
+        Route::post('login', [LoginController::class, 'store'])->middleware('throttle:10,1');
+        Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->middleware('throttle:5,1');
+        Route::post('reset-password', [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,1');
+        Route::post('oauth/google', [SocialAuthController::class, 'google'])->middleware('throttle:20,1');
         Route::post('oauth/facebook', [SocialAuthController::class, 'facebook']);
     });
     Route::get('categories', [CategoryController::class, 'index']);
@@ -120,7 +121,5 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::post('payments/webhook/orange-money', [PaymentController::class, 'omWebhook']);
-    Route::post('payments/webhook/mtn-momo', [PaymentController::class, 'momoWebhook']);
     Route::post('payments/djomy/webhook', [PaymentController::class, 'djomyWebhook']);
 });

@@ -45,6 +45,13 @@ class SubscriptionController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Aucun paiement n'est vérifié ici : activer un abonnement (et le badge
+        // « vérifié » du plan pro) sans payer serait possible pour n'importe qui.
+        // À rouvrir quand l'abonnement passera par un paiement confirmé.
+        return response()->json([
+            'message' => "La souscription n'est pas encore disponible : le paiement de l'abonnement n'est pas activé.",
+        ], 501);
+
         $user = Auth::user();
         $subscription = $user->subscription()
             ->updateOrCreate(

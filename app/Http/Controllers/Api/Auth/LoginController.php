@@ -13,6 +13,9 @@ class LoginController extends Controller
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Identifiants incorrects.'], 401);
         }
+        if ($user->status?->value === 'suspendu') {
+            return response()->json(['message' => 'Ce compte a été suspendu.'], 403);
+        }
         $token = $user->createToken('auth-token')->plainTextToken;
         $user->update(['last_online_at' => now()]);
         return response()->json([

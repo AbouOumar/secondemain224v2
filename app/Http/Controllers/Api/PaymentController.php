@@ -114,7 +114,7 @@ class PaymentController extends Controller
     }
 
     public function djomyWebhook(Request $request) {
-        $signature = $request->header('X-Webhook-Signature');
+        $signature = (string) $request->header('X-Webhook-Signature', '');
         $payload = $request->getContent();
 
         if (!$this->djomy->verifyWebhookSignature($payload, $signature)) {
@@ -144,6 +144,12 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Payment not found'], 404);
         }
 
+        // Un paiement déjà confirmé est définitif : un webhook rejoué ou tardif
+        // ne doit ni le repasser en échec ni redéclencher PaymentReceived.
+        if ($payment->status->value === 'succes') {
+            return response()->json(['message' => 'OK']);
+        }
+
         $status = match ($data['status'] ?? '') {
             'SUCCESS', 'CAPTURED' => 'succes',
             'FAILED', 'TIMEOUT' => 'echoue',
@@ -162,38 +168,6 @@ class PaymentController extends Controller
             event(new PaymentReceived($payment));
         }
 
-        return response()->json(['message' => 'OK']);
-    }
-
-    public function omWebhook(Request $request) {
-        $result = $this->orangeMoney->processWebhook($request->all());
-        $payment = Payment::where('external_ref', $result['external_ref'])->first();
-        if ($payment) {
-            $payment->update([
-                'status' => $result['status'] === 'success' ? 'succes' : 'echoue',
-                'paid_at' => $result['status'] === 'success' ? now() : null,
-                'external_data' => $request->all(),
-            ]);
-            if ($result['status'] === 'success') {
-                event(new PaymentReceived($payment));
-            }
-        }
-        return response()->json(['message' => 'OK']);
-    }
-
-    public function momoWebhook(Request $request) {
-        $result = $this->mtnMomo->processWebhook($request->all());
-        $payment = Payment::where('external_ref', $result['external_ref'])->first();
-        if ($payment) {
-            $payment->update([
-                'status' => $result['status'] === 'success' ? 'succes' : 'echoue',
-                'paid_at' => $result['status'] === 'success' ? now() : null,
-                'external_data' => $request->all(),
-            ]);
-            if ($result['status'] === 'success') {
-                event(new PaymentReceived($payment));
-            }
-        }
         return response()->json(['message' => 'OK']);
     }
 

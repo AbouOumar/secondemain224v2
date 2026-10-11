@@ -39,6 +39,14 @@ class AuthController extends Controller
         $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
         if (Auth::attempt([$field => $login, 'password' => $request->password], $request->boolean('remember'))) {
+            if (Auth::user()->status?->value === 'suspendu') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors(['login' => 'Ce compte a été suspendu.'])->onlyInput('login');
+            }
+
             $request->session()->regenerate();
             return $this->redirectByRole();
         }

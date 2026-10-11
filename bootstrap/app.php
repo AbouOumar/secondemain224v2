@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Désinscription en un clic depuis les messageries (pas de jeton CSRF, URL signée).
         $middleware->validateCsrfTokens(except: ['emails/desabonnement/*']);
 
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
         ]);

@@ -85,9 +85,12 @@ class DeliveryController extends Controller
     }
 
     public function tracking(Request $request, Delivery $delivery) {
+        // Seul le livreur attribué peut publier la position de cette livraison.
+        abort_unless($delivery->rider_id === $request->user()->id, 403);
+
         $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ]);
         $this->trackingService->updatePosition($delivery, $request->latitude, $request->longitude);
         return response()->json(['message' => 'Position mise à jour.']);
