@@ -29,8 +29,10 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+/* La colonne s'étire sur la hauteur de la fiche : la carte collante
+   a ainsi de la place pour suivre le défilement sans sortir de sa zone. */
 .article-sidebar-wrapper {
-  height: fit-content;
+  align-self: stretch;
 }
 .article-sidebar {
   position: sticky;
@@ -159,8 +161,8 @@
 <div class="col-lg-5 article-sidebar-wrapper" style="width: 100%;">
 <div class="card border-0 shadow-sm article-sidebar" style="border-radius: 18px;">
 <div class="card-body p-4">
-<div class="d-flex justify-content-between align-items-center mb-3">
-<h3 class="fw-bold mb-0">{{ number_format($article->prix, 0, ',', ' ') }} {{ $article->currency->value }}</h3>
+<h3 class="fw-bold mb-2 text-nowrap">{{ number_format($article->prix, 0, ',', ' ') }} {{ $article->currency->value }}</h3>
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
 @if($article->is_boosted)
 <span class="badge bg-warning text-dark"><i class="bx bx-rocket"></i> Boosté</span>
 @endif
@@ -230,8 +232,13 @@
 </div>
 </div>
 
+
+</div>
+</div>
+
 @if($relatedArticles->count() > 0)
-<div class="mt-4">
+{{-- Hors de la grille : la carte collante de droite ne doit pas passer par-dessus. --}}
+<div class="mt-5">
 <h5 class="fw-bold mb-3">Annonces similaires</h5>
 <div class="related-scroll-wrapper">
 	<div class="d-flex related-scroll gap-3" style="overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;">
@@ -255,8 +262,6 @@
 </div>
 </div>
 @endif
-</div>
-</div>
 </div>
 
 @auth
