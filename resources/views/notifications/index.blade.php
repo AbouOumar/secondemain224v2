@@ -17,7 +17,13 @@
     @else
         <div class="list-group">
             @foreach($notifications as $notif)
+                @php $target = $notif->targetUrl(); @endphp
                 <div class="list-group-item list-group-item-action border-0 shadow-sm mb-2 notification-item {{ !$notif->is_read ? 'bg-light' : '' }}" style="border-radius:12px;" data-id="{{ $notif->id }}">
+                    @if($target)
+                        {{-- Tout le bloc est cliquable ; les boutons et le point « non lu » restent au-dessus. --}}
+                        <a href="{{ $target }}" class="stretched-link" aria-label="{{ $notif->title }}"
+                           @if(!$notif->is_read) onclick="markReadOnOpen('{{ $notif->id }}')" @endif></a>
+                    @endif
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle {{ $notif->is_read ? 'bg-light' : 'bg-primary bg-opacity-10' }} d-flex align-items-center justify-content-center" style="width:48px;height:48px;min-width:48px;">
                             @switch($notif->type)
@@ -45,13 +51,13 @@
                             <p class="mb-0 text-muted small">{{ $notif->message }}</p>
                             @php $notifData = $notif->data ?? []; @endphp
                             @if(isset($notifData['delivery_id']))
-                                <a href="{{ route('deliveries.tracking', $notifData['delivery_id']) }}" class="btn btn-sm btn-outline-info mt-1">
+                                <a href="{{ route('deliveries.tracking', $notifData['delivery_id']) }}" class="btn btn-sm btn-outline-info mt-1 position-relative" style="z-index:2;">
                                     <i class='bx bx-map'></i> Suivre la livraison
                                 </a>
                             @endif
                         </div>
                         @if(!$notif->is_read)
-                            <span class="badge bg-primary rounded-pill" style="min-width:10px;height:10px;padding:0;cursor:pointer;" onclick="markRead(this, '{{ $notif->id }}')"></span>
+                            <span class="badge bg-primary rounded-pill" style="min-width:10px;height:10px;padding:0;cursor:pointer;position:relative;z-index:2;" onclick="markRead(this, '{{ $notif->id }}')"></span>
                         @endif
                     </div>
                 </div>
@@ -66,6 +72,16 @@
 
 @push('scripts')
 <script>
+// Ouverture d'une notification : on la marque lue en arrière-plan,
+// sans retarder la navigation (keepalive laisse la requête aboutir).
+function markReadOnOpen(id) {
+    fetch('/notifications/' + id + '/read', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+    });
+}
+
 function markRead(el, id) {
     fetch('/notifications/' + id + '/read', {
         method: 'POST',
