@@ -150,7 +150,8 @@ Route::middleware('auth')->group(function () {
         Route::match(['GET', 'POST'], '/{order}/callback', [\App\Http\Controllers\Web\PaymentController::class, 'callback'])->name('callback');
     });
 
-    Route::match(['GET', 'POST'], '/saved/{article}', [\App\Http\Controllers\Web\ProfileController::class, 'toggleSave'])->name('saved.toggle');
+    // POST uniquement : un GET modifiant les favoris pourrait être déclenché par un lien ou une image tierce.
+    Route::post('/saved/{article}', [\App\Http\Controllers\Web\ProfileController::class, 'toggleSave'])->name('saved.toggle');
     Route::prefix('messages')->name('messages.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Web\MessageController::class, 'index'])->name('index');
         Route::get('/{user}/{article?}', [\App\Http\Controllers\Web\MessageController::class, 'show'])->name('show');
