@@ -725,9 +725,12 @@
                             <a class="nav-link px-3" href="{{ url('/profile') }}">Profil</a>
                         </li>
                         <li class="nav-item mt-2 mt-md-0">
-                            <a class="btn btn-outline-light px-3" href="{{ url('/logout') }}">
-                                <i class='bx bx-log-out' style="font-size: 1.2rem;"></i>
-                            </a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-light px-3" aria-label="Déconnexion" title="Déconnexion">
+                                    <i class='bx bx-log-out' style="font-size: 1.2rem;"></i>
+                                </button>
+                            </form>
                         </li>
                         @else
                         <li class="nav-item">

@@ -121,7 +121,10 @@
             </a>
             <hr style="border-color: rgba(255,255,255,0.1);">
             <a href="{{ url('/') }}" class="nav-link"><i class='bx bx-arrow-back'></i><span>Retour au site</span></a>
-            <a href="{{ url('/logout') }}" class="nav-link"><i class='bx bx-log-out'></i><span>Déconnexion</span></a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="nav-link" style="background:none;border:0;width:100%;text-align:left;cursor:pointer;font:inherit;"><i class='bx bx-log-out'></i><span>Déconnexion</span></button>
+            </form>
         </div>
     </nav>
 

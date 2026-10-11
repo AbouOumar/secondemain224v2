@@ -29,7 +29,10 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+// POST uniquement : un lien GET permettrait à un site tiers de déconnecter l'utilisateur.
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Anciens favoris / liens : on ne déconnecte plus, on renvoie à l'accueil.
+Route::get('/logout', fn () => redirect('/'));
 
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
     ->middleware(['signed', 'throttle:6,1'])
