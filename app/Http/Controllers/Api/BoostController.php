@@ -3,8 +3,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
-use App\Models\Boost;
-use App\Models\Payment;
 use App\Services\Article\BoostService;
 use Illuminate\Http\Request;
 
@@ -20,29 +18,14 @@ class BoostController extends Controller
 
         $request->validate([
             'duree_heures' => 'nullable|integer|min:1|max:720',
-            'payment_id' => 'nullable|integer|exists:payments,id',
+            // Refusé : un paiement est toujours lié à une commande, il ne peut pas payer un Boost.
+            'payment_id' => 'prohibited',
+        ], [
+            'payment_id.prohibited' => 'Un Boost se paie avec le portefeuille.',
         ]);
 
-        // Un paiement ne peut financer un boost que s'il est confirmé, appartient
-        // à l'utilisateur et n'a pas déjà servi (sinon boost gratuit avec n'importe quel id).
-        if ($request->payment_id) {
-            $payment = Payment::find($request->payment_id);
-            $valid = $payment
-                && $payment->user_id === $request->user()->id
-                && $payment->status->value === 'succes'
-                && !Boost::where('payment_id', $payment->id)->exists();
-
-            if (!$valid) {
-                return response()->json(['message' => 'Paiement invalide pour ce boost.'], 422);
-            }
-        }
-
         try {
-            $boost = $this->boostService->boost(
-                $article,
-                $request->duree_heures ?? 24,
-                $request->payment_id
-            );
+            $boost = $this->boostService->boost($article, $request->duree_heures ?? 24);
 
             return response()->json([
                 'success' => true,

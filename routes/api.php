@@ -23,16 +23,18 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SellerController;
 use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\SearchAlertController;
+use App\Http\Controllers\Api\ShopController;
+use App\Http\Controllers\Api\RoleRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
-        // Limitation des tentatives : freine le brute-force et le bourrage d'identifiants.
-        Route::post('register', [RegisterController::class, 'store'])->middleware('throttle:10,1');
-        Route::post('login', [LoginController::class, 'store'])->middleware('throttle:10,1');
-        Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->middleware('throttle:5,1');
-        Route::post('reset-password', [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,1');
-        Route::post('oauth/google', [SocialAuthController::class, 'google'])->middleware('throttle:20,1');
+        // Le 3e paramètre sépare les compteurs : sans lui, toutes ces routes partageraient la même limite.
+        Route::post('register', [RegisterController::class, 'store'])->middleware('throttle:5,1,register');
+        Route::post('login', [LoginController::class, 'store'])->middleware('throttle:10,1,login');
+        Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->middleware('throttle:5,1,forgot');
+        Route::post('reset-password', [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,1,reset');
+        Route::post('oauth/google', [SocialAuthController::class, 'google'])->middleware('throttle:10,1,google');
         Route::post('oauth/facebook', [SocialAuthController::class, 'facebook']);
     });
     Route::get('categories', [CategoryController::class, 'index']);
@@ -42,21 +44,33 @@ Route::prefix('v1')->group(function () {
     Route::get('partners', [PartnerController::class, 'index']);
     Route::get('partners/{slug}', [PartnerController::class, 'show']);
     Route::get('sellers/{user}/stats', [SellerController::class, 'stats']);
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('auth/logout', [LogoutController::class, 'store']);
         Route::post('auth/email/verification-notification', [EmailVerificationController::class, 'store'])->middleware('throttle:3,1');
         Route::post('auth/logout-all', [LogoutController::class, 'destroyAll']);
+        Route::middleware('role:revendeur_pro')->prefix('shop')->group(function () {
+            Route::get('/', [ShopController::class, 'show']);
+            Route::post('/', [ShopController::class, 'store']);
+            Route::put('/', [ShopController::class, 'update']);
+            Route::get('dashboard', [ShopController::class, 'dashboard']);
+        });
+        Route::get('role-request', [RoleRequestController::class, 'show']);
+        Route::post('role-request', [RoleRequestController::class, 'store'])->middleware('throttle:5,1,role-request');
+        Route::delete('role-request', [RoleRequestController::class, 'destroy']);
         Route::post('devices', [DeviceTokenController::class, 'store']);
         Route::delete('devices', [DeviceTokenController::class, 'destroy']);
         Route::get('profile', [ProfileController::class, 'show']);
         Route::put('profile', [ProfileController::class, 'update']);
+        Route::delete('profile', [ProfileController::class, 'destroy']);
         Route::post('profile/avatar', [ProfileController::class, 'avatar']);
+        Route::get('profile/saved-ids', [ProfileController::class, 'savedIds']);
         Route::get('profile/saved-articles', [ProfileController::class, 'saved']);
         Route::get('profile/email-preferences', [EmailPreferenceController::class, 'show']);
         Route::put('profile/email-preferences', [EmailPreferenceController::class, 'update']);
         Route::post('articles', [ArticleController::class, 'store']);
         Route::put('articles/{article}', [ArticleController::class, 'update']);
         Route::delete('articles/{article}', [ArticleController::class, 'destroy']);
+        Route::delete('articles/{article}/images/{image}', [ArticleController::class, 'destroyImage']);
         Route::post('articles/{article}/boost', [BoostController::class, 'store']);
         Route::get('boost/pricing', [BoostController::class, 'pricing']);
         Route::post('articles/{article}/saved', [ArticleController::class, 'toggleSave']);
@@ -66,6 +80,8 @@ Route::prefix('v1')->group(function () {
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{reference}', [OrderController::class, 'show']);
+        Route::post('orders/{reference}/delivery', [OrderController::class, 'setDelivery']);
+        Route::delete('orders/{reference}/delivery', [OrderController::class, 'removeDelivery']);
         Route::post('orders/{reference}/cancel', [OrderController::class, 'cancel']);
         Route::post('orders/{reference}/confirm-receipt', [OrderController::class, 'confirmReceipt']);
         Route::get('seller/orders', [OrderController::class, 'sellerOrders']);
@@ -73,6 +89,14 @@ Route::prefix('v1')->group(function () {
         Route::get('payments/{reference}', [PaymentController::class, 'show']);
         Route::get('wallet', [WalletController::class, 'show']);
         Route::get('wallet/transactions', [WalletController::class, 'transactions']);
+        Route::post('wallet/topup', [WalletController::class, 'topup'])->middleware('throttle:10,1,topup');
+        Route::get('wallet/withdrawals', [WalletController::class, 'withdrawals']);
+        Route::post('wallet/withdrawals', [WalletController::class, 'requestWithdrawal'])->middleware('throttle:5,1,withdraw');
+        Route::post('deliveries/position', [DeliveryController::class, 'position'])->middleware('throttle:30,1,position')->name('api.deliveries.position');
+        Route::post('deliveries/position-token', [DeliveryController::class, 'createPositionToken'])->middleware('throttle:10,1,position-token');
+        Route::delete('deliveries/position-token', [DeliveryController::class, 'deletePositionToken']);
+        Route::get('deliveries/current', [DeliveryController::class, 'current']);
+        Route::get('deliveries/earnings', [DeliveryController::class, 'earnings']);
         Route::get('deliveries/available', [DeliveryController::class, 'available']);
         Route::post('deliveries/{delivery}/accept', [DeliveryController::class, 'accept']);
         Route::post('deliveries/{delivery}/pickup', [DeliveryController::class, 'pickup']);
@@ -113,7 +137,8 @@ Route::prefix('v1')->group(function () {
             });
         });
 
-        Route::prefix('subscription')->group(function () {
+        Route::prefix('subscription')->middleware('role:revendeur_pro')->group(function () {
+            Route::get('plans', [App\Http\Controllers\Api\SubscriptionController::class, 'plans'])->name('api.subscription.plans');
             Route::get('current', [App\Http\Controllers\Api\SubscriptionController::class, 'current'])->name('api.subscription.current');
             Route::post('store', [App\Http\Controllers\Api\SubscriptionController::class, 'store'])->name('api.subscription.store');
             Route::post('cancel', [App\Http\Controllers\Api\SubscriptionController::class, 'cancel'])->name('api.subscription.cancel');

@@ -25,6 +25,12 @@ class OrderPolicy
         return $user->id === $order->buyer_id && $order->status->value === 'en_attente_paiement';
     }
 
+    /** L'acheteur choisit (ou retire) la livraison tant que la commande n'est pas payée. */
+    public function changeDelivery(User $user, Order $order): bool
+    {
+        return $user->id === $order->buyer_id && $order->status->value === 'en_attente_paiement';
+    }
+
     public function confirmReceipt(User $user, Order $order): bool
     {
         return $user->id === $order->buyer_id

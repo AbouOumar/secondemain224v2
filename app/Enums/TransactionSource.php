@@ -10,4 +10,5 @@ enum TransactionSource: string
     case Retrait = 'retrait';
     case Remboursement = 'remboursement';
     case Boost = 'boost';
+    case Abonnement = 'abonnement';
 }

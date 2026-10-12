@@ -14,6 +14,19 @@ class PushRoute
 
     public static function forNotification(string $type, array $data): string
     {
+        // Les types existent avec un point ou un tiret bas (« achat.valide », « nouvelle_offre »).
+        $screen = match (str_replace('.', '_', $type)) {
+            'nouvelle_offre', 'offre_contree', 'offre_acceptee', 'offre_refusee' => '/offers/',
+            'achat_valide', 'nouvelle_commande', 'livraison_acceptee', 'livraison_livree', 'livraison_terminee' => '/orders/',
+            'livraison_disponible', 'livraison_attribuee' => '/deliveries/',
+            'retrait_traite' => '/wallet/',
+            'role_traite' => '/profile/role/',
+            default => null,
+        };
+        if ($screen) {
+            return $screen;
+        }
+
         $articleId = $data['article_id'] ?? ($data['article_ids'][0] ?? null);
         $slug = $articleId ? Article::whereKey($articleId)->value('slug') : null;
 

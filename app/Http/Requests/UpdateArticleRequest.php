@@ -20,6 +20,7 @@ class UpdateArticleRequest extends FormRequest
             'localisation' => 'nullable|string|max:191',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'statut' => 'nullable|string|in:en_vente,vendu',
             'with_delivery' => 'nullable|boolean',
             'delivery_prix' => 'nullable|numeric|min:0',
             'images' => 'nullable|array|max:2',

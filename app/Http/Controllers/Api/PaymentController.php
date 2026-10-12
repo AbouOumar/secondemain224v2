@@ -6,8 +6,10 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Http\Resources\PaymentResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\Wallet\WalletService;
 use App\Services\Payment\OrangeMoneyService;
 use App\Services\Payment\MtnMomoService;
 use App\Services\Payment\CardPaymentService;
@@ -21,6 +23,7 @@ class PaymentController extends Controller
         private MtnMomoService $mtnMomo,
         private CardPaymentService $cardPayment,
         private DjomyService $djomy,
+        private WalletService $wallet,
     ) {}
 
     private function mapDjomyPaymentMethod(string $methode): string
@@ -132,6 +135,11 @@ class PaymentController extends Controller
         $transactionId = $data['transactionId'] ?? null;
         $merchantRef = $data['merchantPaymentReference'] ?? null;
 
+        // Sans aucune référence, `where(..., null)` retrouverait n'importe quel paiement sans référence externe.
+        if (! $merchantRef && ! $transactionId) {
+            return response()->json(['message' => 'Invalid payload'], 400);
+        }
+
         $payment = $merchantRef
             ? Payment::where('reference', $merchantRef)->first()
             : Payment::where('external_ref', $transactionId)->first();
@@ -144,28 +152,50 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Payment not found'], 404);
         }
 
-        // Un paiement déjà confirmé est définitif : un webhook rejoué ou tardif
-        // ne doit ni le repasser en échec ni redéclencher PaymentReceived.
-        if ($payment->status->value === 'succes') {
-            return response()->json(['message' => 'OK']);
-        }
+        // Sous verrou : deux notifications simultanées pour le même paiement ne l'encaissent qu'une fois.
+        $confirmed = DB::transaction(function () use ($payment, $data, $transactionId, $request) {
+            $locked = Payment::whereKey($payment->id)->lockForUpdate()->first();
 
-        $status = match ($data['status'] ?? '') {
-            'SUCCESS', 'CAPTURED' => 'succes',
-            'FAILED', 'TIMEOUT' => 'echoue',
-            'CANCELLED' => 'annule',
-            default => $payment->status->value,
-        };
+            // Un paiement déjà encaissé ne revient pas en arrière (notification tardive ou rejouée).
+            if ($locked->status->value === 'succes') {
+                return null;
+            }
 
-        $payment->update([
-            'status' => $status,
-            'paid_at' => in_array($status, ['succes']) ? now() : $payment->paid_at,
-            'external_ref' => $transactionId ?? $payment->external_ref,
-            'external_data' => $request->all(),
-        ]);
+            $status = match ($data['status'] ?? '') {
+                'SUCCESS', 'CAPTURED' => 'succes',
+                'FAILED', 'TIMEOUT' => 'echoue',
+                'CANCELLED' => 'annule',
+                default => $locked->status->value,
+            };
 
-        if ($status === 'succes') {
-            event(new PaymentReceived($payment));
+            $locked->update([
+                'status' => $status,
+                'paid_at' => $status === 'succes' ? now() : $locked->paid_at,
+                'external_ref' => $transactionId ?? $locked->external_ref,
+                'external_data' => $request->all(),
+            ]);
+
+            if ($status !== 'succes') {
+                return null;
+            }
+
+            // Sans commande : c'est une recharge du portefeuille.
+            if ($locked->order_id === null) {
+                $this->wallet->credit(
+                    $locked->user_id,
+                    (int) $locked->montant,
+                    'paiement',
+                    $locked->id,
+                    "Recharge du portefeuille — {$locked->reference}",
+                );
+                return null;
+            }
+
+            return $locked;
+        });
+
+        if ($confirmed) {
+            event(new PaymentReceived($confirmed));
         }
 
         return response()->json(['message' => 'OK']);
@@ -173,8 +203,12 @@ class PaymentController extends Controller
 
     public function show($reference) {
         $payment = Payment::where('reference', $reference)->with('order')->firstOrFail();
-        abort_unless($payment->order, 404);
-        $this->authorize('pay', $payment->order);
+        if ($payment->order) {
+            $this->authorize('pay', $payment->order);
+        } else {
+            // Recharge de portefeuille : seul son auteur la suit.
+            abort_unless($payment->user_id === request()->user()->id, 403);
+        }
         return new PaymentResource($payment);
     }
 }

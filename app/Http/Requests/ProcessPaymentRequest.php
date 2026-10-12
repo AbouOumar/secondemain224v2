@@ -8,7 +8,9 @@ class ProcessPaymentRequest extends FormRequest
     public function rules(): array {
         return [
             'order_id' => 'required|exists:orders,id',
-            'methode' => 'required|string|in:orange_money,mtn_momo,carte_bancaire,portefeuille,djomy',
+            // Djomy regroupe Orange Money, MTN MoMo et la carte. Les autres passerelles ne sont que des
+            // bouchons : les accepter renverrait une erreur 500 (ou, pire, un paiement jamais encaissé).
+            'methode' => 'required|string|in:djomy',
             'payer_phone' => ['nullable', 'string', 'max:20', 'regex:/^\+?[0-9 ]{6,20}$/'],
             'return_url' => 'nullable|url',
             'cancel_url' => 'nullable|url',

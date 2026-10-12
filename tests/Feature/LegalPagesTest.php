@@ -25,6 +25,21 @@ class LegalPagesTest extends TestCase
             ->assertSee('expire après 48 heures');
     }
 
+    public function test_account_deletion_page_is_public_and_explains_the_steps(): void
+    {
+        $this->get('/suppression-compte')
+            ->assertOk()
+            ->assertSee('Supprimer mon compte')
+            ->assertSee('Compte &gt; Supprimer mon compte', false)
+            ->assertSee(route('contact'))
+            ->assertSee(route('legal.privacy'));
+    }
+
+    public function test_privacy_policy_links_to_account_deletion(): void
+    {
+        $this->get('/confidentialite')->assertSee(route('legal.account-deletion'));
+    }
+
     public function test_legal_pages_are_linked_from_footer_and_register_page(): void
     {
         $this->get('/register')

@@ -86,7 +86,7 @@ E-mail : {{ config('legal.email') }} · Téléphone : {{ config('legal.phone') }
 <ul>
 <li>accéder à vos données et en obtenir une copie ;</li>
 <li>les faire rectifier (la plupart sont modifiables directement depuis <a href="{{ route('profile.edit') }}">votre profil</a>) ;</li>
-<li>demander leur suppression, ainsi que celle de votre compte ;</li>
+<li>demander leur suppression, ainsi que celle de votre compte (directement depuis l'application, ou <a href="{{ route('legal.account-deletion') }}">en suivant ces étapes</a>) ;</li>
 <li>vous opposer à certains traitements ou retirer votre consentement, notamment pour la newsletter et les e-mails d'activité, depuis <a href="{{ route('profile.email-preferences') }}">vos préférences e-mail</a> ou le lien présent dans chaque e-mail.</li>
 </ul>
 <p>Pour exercer ces droits, écrivez-nous à {{ config('legal.email') }}. Nous pourrons vous demander de justifier de votre identité. Nous répondons dans un délai d'un mois.</p>

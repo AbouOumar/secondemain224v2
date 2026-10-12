@@ -13,8 +13,8 @@ class DjomyService
 
     public function __construct()
     {
-        $this->clientId = config('djomy.client_id');
-        $this->clientSecret = config('djomy.client_secret');
+        $this->clientId = (string) config('djomy.client_id');
+        $this->clientSecret = (string) config('djomy.client_secret');
         $this->baseUrl = config('djomy.sandbox')
             ? config('djomy.sandbox_url')
             : config('djomy.production_url');
@@ -203,6 +203,11 @@ class DjomyService
 
     public function verifyWebhookSignature(string $payload, string $signatureHeader): bool
     {
+        // Sans clé configurée, la signature serait calculable par n'importe qui : on refuse tout.
+        if ($this->clientSecret === '') {
+            return false;
+        }
+
         // Format: "v1:<hex_signature>"
         if (!str_starts_with($signatureHeader, 'v1:')) {
             return false;

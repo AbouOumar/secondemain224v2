@@ -2,7 +2,9 @@
 namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Notifications\Auth\WelcomeNotification;
+use App\Models\RoleRequest;
 use App\Models\User;
+use App\Services\Account\RoleRequestService;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -70,14 +72,21 @@ class AuthController extends Controller
             'newsletter' => 'nullable|boolean',
         ]);
 
+        // Livreur et revendeur pro s'obtiennent sur demande, après examen (voir l'API d'inscription).
+        $requested = $request->role ?? 'acheteur';
+        $needsReview = in_array($requested, RoleRequest::REQUESTABLE, true);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
-            'role' => $request->role ?? 'acheteur',
+            'role' => $needsReview ? 'acheteur' : $requested,
             'status' => 'actif',
         ]);
+        if ($needsReview) {
+            app(RoleRequestService::class)->request($user, $requested, null);
+        }
 
         if ($request->boolean('newsletter')) {
             $user->forceFill(['newsletter_subscribed_at' => now()])->save();
