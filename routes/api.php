@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\RoleRequestController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\SellerDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -81,6 +82,7 @@ Route::prefix('v1')->group(function () {
         Route::get('articles/{article}/saved-status', [ArticleController::class, 'checkSave']);
         Route::get('seller/articles', [ArticleController::class, 'myArticles']);
         Route::get('seller/stats', [ArticleController::class, 'stats']);
+        Route::get('seller/dashboard', [SellerDashboardController::class, 'show']);
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{reference}', [OrderController::class, 'show']);
