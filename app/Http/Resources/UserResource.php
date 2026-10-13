@@ -21,6 +21,11 @@ class UserResource extends JsonResource
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'last_online_at' => $this->last_online_at,
+            // Boutique d'un revendeur pro : permet de la rejoindre depuis ses annonces.
+            'partner' => $this->whenLoaded('partner', fn () => $this->partner ? [
+                'slug' => $this->partner->slug,
+                'nom_magasin' => $this->partner->nom_magasin,
+            ] : null),
             'created_at' => $this->created_at,
         ];
     }

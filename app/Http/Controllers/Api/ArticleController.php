@@ -5,6 +5,7 @@ use App\Http\Requests\StoreArticleRequest;
 use App\Http\Requests\UpdateArticleRequest;
 use App\Models\Article;
 use App\Models\ArticleImage;
+use App\Models\Order;
 use App\Http\Resources\ArticleResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -14,13 +15,13 @@ use App\Services\Article\ImageCompressionService;
 
 class ArticleController extends Controller
 {
-    private const MAX_IMAGES = 2;
+    private const MAX_IMAGES = Article::MAX_IMAGES;
 
     public function __construct(private ImageCompressionService $imageCompression) {}
 
     public function index(Request $request) {
         $query = Article::disponible()->where('is_published', true)
-            ->with(['images', 'user', 'category']);
+            ->with(['images', 'user.partner', 'category']);
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
@@ -45,11 +46,20 @@ class ArticleController extends Controller
             $query->where('localisation', 'like', "%{$request->localisation}%");
         }
 
-        $articles = $query->orderBy('is_boosted', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(12);
+        // Annonces des boutiques vérifiées (section « Espaces partenaires » de l'accueil).
+        if ($request->boolean('partner')) {
+            $query->where('is_verified', true)
+                ->whereHas('user.partner', fn ($q) => $q->where('is_verified', true));
+        }
 
-        return ArticleResource::collection($articles);
+        // Mêmes valeurs que le tri du site ; toute autre valeur garde l'ordre par défaut.
+        match ($request->query('sort')) {
+            'price_asc' => $query->orderBy('prix', 'asc'),
+            'price_desc' => $query->orderBy('prix', 'desc'),
+            default => $query->orderBy('is_boosted', 'desc')->orderBy('created_at', 'desc'),
+        };
+
+        return ArticleResource::collection($query->paginate(12));
     }
 
     public function show(string $slug) {
@@ -64,7 +74,7 @@ class ArticleController extends Controller
             $article->increment('vue_count');
         }
 
-        $article->load(['images', 'user', 'category']);
+        $article->load(['images', 'user.partner', 'category']);
         return new ArticleResource($article);
     }
 
@@ -189,12 +199,12 @@ class ArticleController extends Controller
         $totalArticles = Article::where('user_id', $userId)->count();
         $articlesEnVente = Article::where('user_id', $userId)->where('is_published', true)->count();
         $articlesVendus = Article::where('user_id', $userId)->whereHas('orders', function($q) {
-            $q->where('status', 'termine');
+            $q->where('status', 'livre');
         })->count();
         
         // Revenus générés
         $revenus = Order::where('seller_id', $userId)
-            ->where('status', 'termine')
+            ->where('status', 'livre')
             ->sum('total');
             
         // Articles par catégorie

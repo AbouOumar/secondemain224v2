@@ -23,7 +23,7 @@ class UpdateArticleRequest extends FormRequest
             'statut' => 'nullable|string|in:en_vente,vendu',
             'with_delivery' => 'nullable|boolean',
             'delivery_prix' => 'nullable|numeric|min:0',
-            'images' => 'nullable|array|max:2',
+            'images' => 'nullable|array|max:'.\App\Models\Article::MAX_IMAGES,
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ];
     }
