@@ -25,6 +25,8 @@ use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\SearchAlertController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\RoleRequestController;
+use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\PageController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -37,6 +39,8 @@ Route::prefix('v1')->group(function () {
         Route::post('oauth/google', [SocialAuthController::class, 'google'])->middleware('throttle:10,1,google');
         Route::post('oauth/facebook', [SocialAuthController::class, 'facebook']);
     });
+    Route::get('pages/{slug}', [PageController::class, 'show']);
+    Route::post('contact', [ContactController::class, 'store'])->middleware('throttle:5,1,contact');
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('categories/{slug}', [CategoryController::class, 'show']);
     Route::get('articles', [ArticleController::class, 'index']);
