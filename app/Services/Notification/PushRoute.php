@@ -21,6 +21,12 @@ class PushRoute
             'livraison_disponible', 'livraison_attribuee' => '/deliveries/',
             'retrait_traite' => '/wallet/',
             'role_traite' => '/profile/role/',
+            'paiement_confirme', 'paiement_recu', 'paiement_echoue' => '/orders/',
+            'recharge_recue' => '/wallet/',
+            'boost_active', 'annonce_validee', 'annonce_rejetee', 'annonce_vendue', 'annonce_retiree' => '/profile/listings/',
+            'abonnement_active', 'abonnement_annule', 'abonnement_expire' => '/subscription/',
+            'verification_approuvee', 'verification_rejetee' => '/verification/',
+            'compte_suspendu', 'compte_avertissement', 'signalement_traite' => '/notifications/',
             default => null,
         };
         if ($screen) {
