@@ -47,7 +47,7 @@ class RoleRequestService
             throw new RoleRequestException('Votre compte a déjà un rôle spécial.', 403);
         }
 
-        return DB::transaction(function () use ($user, $role, $details) {
+        $created = DB::transaction(function () use ($user, $role, $details) {
             if (RoleRequest::where('user_id', $user->id)->where('status', RoleRequest::PENDING)->lockForUpdate()->exists()) {
                 throw new RoleRequestException('Une demande est déjà en cours d\'examen.', 409);
             }
@@ -59,6 +59,14 @@ class RoleRequestService
                 'details' => $details,
             ]);
         });
+
+        // À l'inscription les détails manquent encore : on prévient les admins une fois la demande complète.
+        if ($details !== null) {
+            $label = self::LABELS[$role] ?? $role;
+            $this->notifications->sendToAdmins('Nouvelle demande de rôle', "{$user->name} demande un compte {$label}.", 'admin.role_demande', ['role_request_id' => $created->id]);
+        }
+
+        return $created;
     }
 
     /** Le candidat retire sa demande en attente. */

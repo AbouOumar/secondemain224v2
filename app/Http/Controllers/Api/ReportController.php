@@ -55,6 +55,8 @@ class ReportController extends Controller
             'status' => 'pending',
         ]);
 
+        app(\App\Services\Notification\FirebaseNotificationService::class)->sendToAdmins('Nouveau signalement', 'Un contenu vient d\'être signalé.', 'admin.signalement', ['report_id' => $report->id]);
+
         return response()->json(['message' => 'Signalement envoyé.', 'id' => $report->id], 201);
     }
 }

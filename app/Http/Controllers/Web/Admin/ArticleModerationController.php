@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Services\Notification\FirebaseNotificationService;
 use Illuminate\Http\Request;
 
 class ArticleModerationController extends Controller
@@ -26,6 +27,7 @@ class ArticleModerationController extends Controller
     public function verify(Article $article)
     {
         $article->update(['is_verified' => true, 'rejection_raison' => null]);
+        app(FirebaseNotificationService::class)->sendQuietly($article->user, 'Annonce validée', "Votre annonce \"{$article->titre}\" est validée.", 'annonce.validee', ['article_id' => $article->id]);
 
         return back()->with('success', "L'annonce « {$article->titre} » a été validée.");
     }
@@ -38,6 +40,7 @@ class ArticleModerationController extends Controller
             'is_published' => false,
             'rejection_raison' => $request->raison,
         ]);
+        app(FirebaseNotificationService::class)->sendQuietly($article->user, 'Annonce refusée', "Votre annonce \"{$article->titre}\" a été refusée".($request->raison ? " : {$request->raison}." : '.'), 'annonce.rejetee', ['article_id' => $article->id]);
 
         return back()->with('success', "L'annonce « {$article->titre} » a été rejetée.");
     }
