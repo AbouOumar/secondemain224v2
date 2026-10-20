@@ -7,6 +7,7 @@ use App\Services\Wallet\InsufficientFundsException;
 use App\Services\Wallet\WalletService;
 use App\Enums\TransactionType;
 use App\Enums\TransactionSource;
+use App\Services\Notification\FirebaseNotificationService;
 use Illuminate\Support\Str;
 
 class BoostService {
@@ -45,6 +46,14 @@ class BoostService {
             'is_boosted' => true,
             'boosted_until' => $boost->end_at,
         ]);
+
+        app(FirebaseNotificationService::class)->sendQuietly(
+            $article->user,
+            'Annonce boostée',
+            "Votre annonce \"{$article->titre}\" est mise en avant pendant {$dureeHeures} h.",
+            'boost.active',
+            ['article_id' => $article->id],
+        );
 
         return $boost;
     }
