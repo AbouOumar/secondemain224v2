@@ -5,6 +5,7 @@
 <div class="row justify-content-center">
 <div class="col-lg-9">
 <h1 class="fw-bold mb-2">Politique de confidentialité</h1>
+<p class="fw-semibold text-success mb-1">{{ config('legal.slogan') }}</p>
 <p class="text-muted mb-4">Dernière mise à jour : {{ config('legal.updated_at') }}</p>
 
 <div class="card border-0 shadow-sm p-4 mb-4 legal" style="border-radius: 18px;">

@@ -46,4 +46,21 @@ class LegalPagesTest extends TestCase
             ->assertSee(route('legal.terms'))
             ->assertSee(route('legal.privacy'));
     }
+
+    public function test_legal_pages_show_operator_details_and_documented_rules(): void
+    {
+        $this->get('/confidentialite')
+            ->assertOk()
+            ->assertSee('Gbessia (carrefour Saya)')
+            ->assertSee('secondemain880@gmail.com')
+            ->assertSee('72 heures')
+            ->assertSee('13 mois')
+            ->assertDontSee('[à compléter');
+
+        $this->get('/cgu')
+            ->assertOk()
+            ->assertSee('Garantie de conformité')
+            ->assertSee('Gbessia (carrefour Saya)')
+            ->assertDontSee('[à compléter');
+    }
 }
