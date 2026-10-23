@@ -135,7 +135,7 @@ Route::view('/confidentialite', 'legal.privacy')->name('legal.privacy');
 Route::view('/suppression-compte', 'legal.account-deletion')->name('legal.account-deletion');
 Route::view('/cgu', 'legal.terms')->name('legal.terms');
 Route::get('/contact', [App\Http\Controllers\Web\ContactController::class, 'index'])->name('contact');
-Route::post('/contact', [App\Http\Controllers\Web\ContactController::class, 'send'])->name('contact.send');
+Route::post('/contact', [App\Http\Controllers\Web\ContactController::class, 'send'])->middleware('throttle:5,1')->name('contact.send');
 
 Route::get('/revendre', function () {
     return redirect()->route('articles.create');

@@ -15,6 +15,7 @@ use App\Services\Payment\MtnMomoService;
 use App\Services\Payment\CardPaymentService;
 use App\Services\Djomy\DjomyService;
 use App\Events\PaymentReceived;
+use App\Services\Notification\FirebaseNotificationService;
 
 class PaymentController extends Controller
 {
@@ -153,7 +154,8 @@ class PaymentController extends Controller
         }
 
         // Sous verrou : deux notifications simultanées pour le même paiement ne l'encaissent qu'une fois.
-        $confirmed = DB::transaction(function () use ($payment, $data, $transactionId, $request) {
+        $outcome = null;
+        $confirmed = DB::transaction(function () use ($payment, $data, $transactionId, $request, &$outcome) {
             $locked = Payment::whereKey($payment->id)->lockForUpdate()->first();
 
             // Un paiement déjà encaissé ne revient pas en arrière (notification tardive ou rejouée).
@@ -176,6 +178,9 @@ class PaymentController extends Controller
             ]);
 
             if ($status !== 'succes') {
+                if (in_array($status, ['echoue', 'annule'], true)) {
+                    $outcome = ['echec', $locked];
+                }
                 return null;
             }
 
@@ -188,6 +193,7 @@ class PaymentController extends Controller
                     $locked->id,
                     "Recharge du portefeuille — {$locked->reference}",
                 );
+                $outcome = ['recharge', $locked];
                 return null;
             }
 
@@ -196,6 +202,18 @@ class PaymentController extends Controller
 
         if ($confirmed) {
             event(new PaymentReceived($confirmed));
+        }
+
+        // Après la transaction : la notification ne doit ni la retarder ni l'annuler.
+        if ($outcome) {
+            [$kind, $paid] = $outcome;
+            $notif = app(FirebaseNotificationService::class);
+            $amount = number_format((int) $paid->montant, 0, ',', ' ');
+            if ($kind === 'recharge') {
+                $notif->sendQuietly($paid->user, 'Recharge reçue', "{$amount} GNF ont été ajoutés à votre portefeuille.", 'recharge.recue', ['payment_id' => $paid->id]);
+            } else {
+                $notif->sendQuietly($paid->user, 'Paiement échoué', "Votre paiement de {$amount} GNF n'a pas abouti. Vous pouvez réessayer.", 'paiement.echoue', array_filter(['payment_id' => $paid->id, 'order_id' => $paid->order_id]));
+            }
         }
 
         return response()->json(['message' => 'OK']);

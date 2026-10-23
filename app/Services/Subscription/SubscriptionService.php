@@ -6,6 +6,7 @@ use App\Exceptions\SubscriptionException;
 use App\Models\IdentityVerification;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\Notification\FirebaseNotificationService;
 use App\Services\Wallet\InsufficientFundsException;
 use App\Services\Wallet\WalletService;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,7 @@ class SubscriptionService
         $plan = $this->plans()[$planKey] ?? throw new SubscriptionException('Plan inconnu.', 422);
         $price = (int) $plan['price'];
 
-        return DB::transaction(function () use ($user, $planKey, $plan, $price) {
+        $subscription = DB::transaction(function () use ($user, $planKey, $plan, $price) {
             $current = Subscription::where('user_id', $user->id)->lockForUpdate()->first();
             if ($current && $current->isActive() && $current->plan_type === $planKey) {
                 throw new SubscriptionException('Ce plan est déjà actif.', 409);
@@ -63,6 +64,10 @@ class SubscriptionService
 
             return $subscription;
         });
+
+        app(FirebaseNotificationService::class)->sendQuietly($user, 'Abonnement activé', "Votre abonnement {$plan['label']} est actif.", 'abonnement.active', ['plan' => $planKey]);
+
+        return $subscription;
     }
 
     /** Annule l'abonnement tout de suite, sans remboursement. Faux s'il n'y en avait pas d'actif. */
@@ -75,6 +80,7 @@ class SubscriptionService
 
         $subscription->update(['status' => 'cancelled', 'ends_at' => now()]);
         $this->releaseBadge($user);
+        app(FirebaseNotificationService::class)->sendQuietly($user, 'Abonnement annulé', 'Votre abonnement a été annulé.', 'abonnement.annule');
 
         return true;
     }
@@ -88,6 +94,7 @@ class SubscriptionService
             $subscription->update(['status' => 'expired']);
             if ($subscription->user) {
                 $this->releaseBadge($subscription->user);
+                app(FirebaseNotificationService::class)->sendQuietly($subscription->user, 'Abonnement expiré', 'Votre abonnement est arrivé à terme. Renouvelez-le pour garder vos avantages.', 'abonnement.expire');
             }
         }
 

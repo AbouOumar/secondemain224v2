@@ -1,7 +1,9 @@
 <?php
 namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\ContactRequest;
+use App\Mail\ContactMessageMail;
+use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
@@ -10,15 +12,19 @@ class ContactController extends Controller
         return view('contact');
     }
 
-    public function send(Request $request)
+    public function send(ContactRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:191',
-            'email' => 'required|email',
-            'message' => 'required|string',
-        ]);
+        $to = config('legal.public_email');
+        if (! $to) {
+            return back()->withInput()->withErrors(['message' => 'Le formulaire de contact est momentanément indisponible.']);
+        }
 
-        // TODO: envoyer l'email
+        Mail::to($to)->send(new ContactMessageMail(
+            $request->input('name'),
+            $request->input('email'),
+            $request->input('message'),
+        ));
+
         return back()->with('success', 'Message envoyé avec succès.');
     }
 }

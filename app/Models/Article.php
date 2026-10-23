@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Article extends Model
 {
+    /** Nombre maximal de photos d'une annonce (création et modification, API et site). */
+    public const MAX_IMAGES = 5;
+
     use HasFactory, SoftDeletes;
 
     protected $fillable = [

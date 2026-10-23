@@ -795,6 +795,7 @@
                     <div class="col-md-4 mb-3">
                         <h5>À propos</h5>
                         <p>Seconde Main 224 - Marketplace Guinée</p>
+                        <p class="fw-semibold">{{ config('legal.slogan') }}</p>
                     </div>
                     <div class="col-md-4 mb-3">
                         <h5>Liens rapides</h5>

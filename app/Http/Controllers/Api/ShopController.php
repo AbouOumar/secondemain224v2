@@ -59,32 +59,8 @@ class ShopController extends Controller
         return response()->json(['data' => new PartnerResource($shop->fresh())]);
     }
 
-    public function dashboard(Request $request) {
-        $userId = $request->user()->id;
-        $now = now();
-
-        $total = Article::where('user_id', $userId)->count();
-        $enVente = Article::where('user_id', $userId)->where('is_published', true)
-            ->where(fn ($q) => $q->where('statut', '!=', 'vendu')->orWhereNull('statut'))->count();
-        $vendus = Order::where('seller_id', $userId)->where('status', 'livre')->distinct('article_id')->count('article_id');
-
-        $paid = Order::where('seller_id', $userId)->whereIn('status', ['paye', 'livre']);
-        $earnings = [
-            'aujourd_hui' => (int) (clone $paid)->whereDate('created_at', $now->toDateString())->sum('total'),
-            'ce_mois' => (int) (clone $paid)->whereMonth('created_at', $now->month)->whereYear('created_at', $now->year)->sum('total'),
-            'cette_annee' => (int) (clone $paid)->whereYear('created_at', $now->year)->sum('total'),
-        ];
-
-        $recent = Order::where('seller_id', $userId)->with(['article', 'buyer'])->latest()->take(5)->get();
-
-        return response()->json(['data' => [
-            'total' => $total,
-            'en_vente' => $enVente,
-            'vendus' => $vendus,
-            'taux' => $total ? (int) round(($vendus / $total) * 100) : 0,
-            'earnings' => $earnings,
-            'recent_orders' => OrderResource::collection($recent),
-        ]]);
+    public function dashboard(Request $request, \App\Services\Seller\SellerDashboard $dashboard) {
+        return response()->json(['data' => $dashboard->for($request->user())]);
     }
 
     private function validated(Request $request, ?Partner $shop = null): array {

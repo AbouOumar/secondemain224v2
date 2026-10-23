@@ -73,26 +73,60 @@ class ArticleLifecycleTest extends TestCase
         $this->assertSame(1, $other->images()->count());
     }
 
-    public function test_an_article_cannot_end_up_with_more_than_two_photos(): void
+    public function test_an_article_cannot_end_up_with_more_than_five_photos(): void
     {
         Storage::fake('public');
         $owner = User::factory()->create(['role' => 'vendeur']);
         $article = $this->article($owner);
-        $article->images()->create(['url' => UploadedFile::fake()->image('a.jpg')->store('articles', 'public'), 'ordre' => 0]);
+        foreach (range(1, 4) as $i) {
+            $article->images()->create(['url' => UploadedFile::fake()->image("p{$i}.jpg")->store('articles', 'public'), 'ordre' => $i]);
+        }
         Sanctum::actingAs($owner);
 
+        // 4 + 2 = 6 : refusé, rien n'est ajouté
         $this->post("/api/v1/articles/{$article->id}", [
             '_method' => 'PUT',
             'images' => [UploadedFile::fake()->image('n1.jpg'), UploadedFile::fake()->image('n2.jpg')],
         ], ['Accept' => 'application/json'])->assertUnprocessable()->assertJsonValidationErrors('images');
+        $this->assertSame(4, $article->images()->count());
 
-        $this->assertSame(1, $article->images()->count());
-
+        // 4 + 1 = 5 : accepté
         $this->post("/api/v1/articles/{$article->id}", [
             '_method' => 'PUT',
             'images' => [UploadedFile::fake()->image('n1.jpg')],
         ], ['Accept' => 'application/json'])->assertOk();
-        $this->assertSame(2, $article->images()->count());
+        $this->assertSame(5, $article->images()->count());
+    }
+
+    public function test_an_article_can_be_created_with_five_photos_but_not_six(): void
+    {
+        Storage::fake('public');
+        $seller = User::factory()->create(['role' => 'vendeur']);
+        $category = Category::firstOrCreate(['slug' => 'test'], ['libelle' => 'Test', 'icon' => 'bx-box']);
+        Sanctum::actingAs($seller);
+
+        $payload = fn (int $count) => [
+            'titre' => 'Velo', 'description' => 'd', 'prix' => 1000, 'category_id' => $category->id, 'localisation' => 'Conakry', 'etat' => 'bon',
+            'images' => array_map(fn ($i) => UploadedFile::fake()->image("p{$i}.jpg"), range(1, $count)),
+        ];
+
+        $this->post('/api/v1/articles', $payload(6), ['Accept' => 'application/json'])
+            ->assertUnprocessable()->assertJsonValidationErrors('images');
+        $this->assertSame(0, Article::count());
+
+        $this->post('/api/v1/articles', $payload(5), ['Accept' => 'application/json'])->assertCreated();
+        $this->assertSame(5, Article::firstOrFail()->images()->count());
+    }
+
+    public function test_creating_an_article_without_a_condition_is_a_validation_error_not_a_server_error(): void
+    {
+        $seller = User::factory()->create(['role' => 'vendeur']);
+        $category = Category::firstOrCreate(['slug' => 'test'], ['libelle' => 'Test', 'icon' => 'bx-box']);
+        Sanctum::actingAs($seller);
+
+        $this->postJson('/api/v1/articles', [
+            'titre' => 'Velo', 'description' => 'd', 'prix' => 1000, 'category_id' => $category->id, 'localisation' => 'Conakry',
+        ])->assertUnprocessable()->assertJsonValidationErrors('etat');
     }
 
     public function test_an_article_can_be_marked_sold_and_put_back_on_sale(): void

@@ -2,6 +2,7 @@
 namespace App\Services\Notification;
 use App\Enums\EmailCategory;
 use App\Jobs\SendPushNotification;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Notification;
@@ -30,6 +31,28 @@ class FirebaseNotificationService {
                 'type' => $type,
                 'route' => PushRoute::forNotification($type, $data),
             ]);
+        }
+    }
+
+    /**
+     * Comme send(), mais une notification qui échoue ne doit jamais faire échouer
+     * l'action métier qui l'a déclenchée (paiement encaissé, annonce validée…).
+     */
+    public function sendQuietly(?User $user, string $title, string $message, string $type, array $data = []): void {
+        if (! $user) {
+            return;
+        }
+        try {
+            $this->send($user, $title, $message, $type, $data);
+        } catch (\Throwable $e) {
+            Log::warning('Notification non envoyée', ['type' => $type, 'user_id' => $user->id, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /** Prévient tous les administrateurs (demande à traiter, signalement…). */
+    public function sendToAdmins(string $title, string $message, string $type, array $data = []): void {
+        foreach (User::where('role', 'admin')->get() as $admin) {
+            $this->sendQuietly($admin, $title, $message, $type, $data);
         }
     }
 

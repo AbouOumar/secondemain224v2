@@ -15,14 +15,14 @@ class StoreArticleRequest extends FormRequest
             'stock' => 'nullable|integer|min:0',
             'colors' => 'nullable|array|max:6',
             'colors.*' => 'required|string',
-            'etat' => 'nullable|string|in:neuf,tres_bon,bon,moyen',
+            'etat' => 'required|string|in:neuf,tres_bon,bon,moyen',
             'annee' => 'nullable|integer|min:1900|max:'.date('Y'),
             'localisation' => 'required|string|max:191',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'with_delivery' => 'nullable|boolean',
             'delivery_prix' => 'nullable|numeric|min:0',
-            'images' => 'nullable|array|max:2',
+            'images' => 'nullable|array|max:'.\App\Models\Article::MAX_IMAGES,
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ];
     }

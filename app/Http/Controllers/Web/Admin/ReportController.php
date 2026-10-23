@@ -7,6 +7,7 @@ use App\Models\Article;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\Escrow\EscrowService;
+use App\Services\Notification\FirebaseNotificationService;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
@@ -74,6 +75,17 @@ class ReportController extends Controller
             default:
                 break;
         }
+
+        $notif = app(FirebaseNotificationService::class);
+        $owner = $reportable instanceof User ? $reportable : $reportable?->user;
+        $note = ($data['note'] ?? null) ? " Motif : {$data['note']}" : '';
+        match ($data['action']) {
+            'remove_content' => $notif->sendQuietly($owner, 'Annonce retirée', 'Votre annonce a été retirée suite à un signalement.'.$note, 'annonce.retiree', $reportable instanceof Article ? ['article_id' => $reportable->id] : []),
+            'suspend_user' => $notif->sendQuietly($owner, 'Compte suspendu', 'Votre compte a été suspendu suite à un signalement.'.$note, 'compte.suspendu'),
+            'warn' => $notif->sendQuietly($owner, 'Avertissement', 'Un signalement a été retenu contre votre contenu.'.$note, 'compte.avertissement'),
+            default => null,
+        };
+        $notif->sendQuietly($report->reporter, 'Signalement traité', 'Merci : votre signalement a été examiné par notre équipe.', 'signalement.traite');
 
         $report->update([
             'status' => $data['action'] === 'dismiss' ? 'dismissed' : 'resolved',

@@ -4,6 +4,7 @@ namespace App\Services\Verification;
 
 use App\Models\IdentityVerification;
 use App\Models\User;
+use App\Services\Notification\FirebaseNotificationService;
 use Illuminate\Http\UploadedFile;
 
 /**
@@ -40,6 +41,8 @@ class IdentityVerificationService
             ],
         ]);
 
+        app(FirebaseNotificationService::class)->sendToAdmins('Vérification à traiter', "{$user->name} a envoyé une pièce d'identité.", 'admin.verification', ['verification_id' => $verification->id]);
+
         return $verification;
     }
 
@@ -57,6 +60,7 @@ class IdentityVerificationService
         ]);
 
         $this->syncLegacyDocumentsStatus($verification, 'approved');
+        app(FirebaseNotificationService::class)->sendQuietly($verification->user, 'Identité vérifiée', 'Votre identité est vérifiée : le badge est sur votre profil.', 'verification.approuvee');
     }
 
     public function reject(IdentityVerification $verification, User $admin, ?string $reason): void
@@ -69,6 +73,7 @@ class IdentityVerificationService
         ]);
 
         $this->syncLegacyDocumentsStatus($verification, 'rejected', $reason);
+        app(FirebaseNotificationService::class)->sendQuietly($verification->user, 'Vérification refusée', 'Votre vérification n\'a pas été retenue'.($reason ? " : {$reason}." : '.'), 'verification.rejetee');
     }
 
     private function syncLegacyDocumentsStatus(IdentityVerification $verification, string $status, ?string $reason = null): void

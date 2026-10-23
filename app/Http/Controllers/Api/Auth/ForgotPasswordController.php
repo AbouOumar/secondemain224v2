@@ -4,44 +4,31 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
-use App\Models\User;
-use App\Models\PasswordResetToken;
 
 class ForgotPasswordController extends Controller
 {
     public function store(Request $request) {
-        if ($request->filled('email')) {
-            $request->validate(['email' => 'required|email']);
-            // Réponse identique que le compte existe ou non (pas d'énumération des e-mails).
-            Password::sendResetLink($request->only('email'));
-            return response()->json(['message' => 'Si un compte correspond à cette adresse, un lien de réinitialisation vient d\'être envoyé.']);
-        }
-
-        // Réponse identique que le numéro existe ou non (pas d'énumération des comptes).
-        $request->validate(['phone' => 'required|string|max:20']);
-        if (User::where('phone', $request->phone)->exists()) {
-            $token = Str::random(60);
-            PasswordResetToken::updateOrCreate(
-                ['phone' => $request->phone],
-                ['token' => Hash::make($token), 'created_at' => now()]
-            );
-        }
-        return response()->json(['message' => 'Si un compte correspond à ce numéro, un code de réinitialisation a été envoyé.']);
+        $request->validate(['email' => 'required|email']);
+        // Réponse identique que le compte existe ou non (pas d'énumération des e-mails).
+        Password::sendResetLink($request->only('email'));
+        return response()->json(['message' => 'Si un compte correspond à cette adresse, un lien de réinitialisation vient d\'être envoyé.']);
     }
 
     public function reset(Request $request) {
         $request->validate([
-            'phone' => 'required|string',
+            'email' => 'required|email',
             'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
-        $reset = PasswordResetToken::where('phone', $request->phone)->first();
-        if (!$reset || !Hash::check($request->token, $reset->token)) {
-            return response()->json(['message' => 'Token invalide.'], 400);
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill(['password' => Hash::make($password)])->save();
+            }
+        );
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json(['message' => 'Lien de réinitialisation invalide ou expiré.'], 400);
         }
-        User::where('phone', $request->phone)->update(['password' => Hash::make($request->password)]);
-        $reset->delete();
         return response()->json(['message' => 'Mot de passe réinitialisé.']);
     }
 }
