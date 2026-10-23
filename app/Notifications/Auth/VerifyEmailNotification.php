@@ -3,17 +3,13 @@
 namespace App\Notifications\Auth;
 
 use Illuminate\Auth\Notifications\VerifyEmail;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 
 /**
  * Lien de confirmation d'adresse e-mail (renvoi, ou après changement d'e-mail).
  */
-class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
+class VerifyEmailNotification extends VerifyEmail
 {
-    use Queueable;
-
     protected function buildMailMessage($url): MailMessage
     {
         return (new MailMessage)

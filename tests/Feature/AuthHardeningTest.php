@@ -57,15 +57,32 @@ class AuthHardeningTest extends TestCase
         $this->withToken($token)->getJson('/api/v1/profile')->assertStatus(403);
     }
 
-    public function test_forgot_password_by_phone_does_not_reveal_whether_the_phone_exists(): void
+    public function test_forgot_password_requires_an_email(): void
     {
-        User::factory()->create(['phone' => '622000001']);
+        $this->postJson('/api/v1/auth/forgot-password', ['phone' => '622000001'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('email');
+    }
 
-        $known = $this->postJson('/api/v1/auth/forgot-password', ['phone' => '622000001']);
-        $unknown = $this->postJson('/api/v1/auth/forgot-password', ['phone' => '699999999']);
+    public function test_api_password_reset_works_with_the_emailed_token(): void
+    {
+        $user = User::factory()->create();
+        $token = \Illuminate\Support\Facades\Password::createToken($user);
 
-        $known->assertOk();
-        $unknown->assertOk();
-        $this->assertSame($known->json('message'), $unknown->json('message'));
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $user->email,
+            'token' => $token,
+            'password' => 'nouveau-mdp-123',
+            'password_confirmation' => 'nouveau-mdp-123',
+        ])->assertOk();
+
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('nouveau-mdp-123', $user->fresh()->password));
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $user->email,
+            'token' => 'mauvais',
+            'password' => 'autre-mdp-1234',
+            'password_confirmation' => 'autre-mdp-1234',
+        ])->assertStatus(400);
     }
 }
