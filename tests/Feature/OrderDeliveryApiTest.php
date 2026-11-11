@@ -45,4 +45,42 @@ class OrderDeliveryApiTest extends TestCase
             ->assertJsonPath('data.delivery.status', 'en_attente')
             ->assertJsonPath('data.delivery.delivery_adresse', 'Kaloum, Conakry');
     }
+
+    private function articleOf(User $seller, bool $published = true): Article
+    {
+        $category = Category::create(['libelle' => 'Test', 'slug' => 'test-' . uniqid(), 'icon' => 'bx-box']);
+
+        return Article::create([
+            'user_id' => $seller->id,
+            'category_id' => $category->id,
+            'titre' => 'Article',
+            'slug' => 'article-' . uniqid(),
+            'description' => 'Description',
+            'prix' => 50000,
+            'currency' => 'GNF',
+            'localisation' => 'Conakry',
+            'is_published' => $published,
+        ]);
+    }
+
+    public function test_seller_cannot_order_their_own_article(): void
+    {
+        $seller = User::factory()->create(['role' => 'vendeur']);
+        $article = $this->articleOf($seller);
+
+        Sanctum::actingAs($seller);
+        $this->postJson('/api/v1/orders', ['article_id' => $article->id])->assertStatus(422);
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_unpublished_article_cannot_be_ordered(): void
+    {
+        $seller = User::factory()->create(['role' => 'vendeur']);
+        $buyer = User::factory()->create(['role' => 'acheteur']);
+        $article = $this->articleOf($seller, published: false);
+
+        Sanctum::actingAs($buyer);
+        $this->postJson('/api/v1/orders', ['article_id' => $article->id])->assertStatus(409);
+        $this->assertDatabaseCount('orders', 0);
+    }
 }

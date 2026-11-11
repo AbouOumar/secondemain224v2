@@ -4,8 +4,7 @@ namespace App\Services\Escrow;
 
 use App\Models\Escrow;
 use App\Models\Order;
-use App\Models\Transaction;
-use App\Models\Wallet;
+use App\Services\Wallet\WalletService;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -15,6 +14,8 @@ use Illuminate\Support\Facades\DB;
  */
 class EscrowService
 {
+    public function __construct(private WalletService $wallet) {}
+
     /**
      * Place les fonds d'une commande payée sous séquestre. Idempotent :
      * si l'escrow existe déjà pour cette commande, il est simplement retourné.
@@ -44,55 +45,59 @@ class EscrowService
 
     /**
      * Libère les fonds séquestrés : crédite le portefeuille du vendeur (et
-     * celui du livreur si applicable). Idempotent.
+     * celui du livreur si applicable). Idempotent, y compris en cas d'appels simultanés
+     * (le séquestre est verrouillé puis relu dans la transaction).
      */
     public function release(Escrow $escrow, string $reason): void
     {
-        if (in_array($escrow->status->value, ['libere', 'rembourse'], true)) {
-            return;
-        }
-
         DB::transaction(function () use ($escrow, $reason) {
-            $order = $escrow->order()->lockForUpdate()->first()?->load('delivery');
+            $locked = $this->lockOpen($escrow);
+            if (! $locked) {
+                return;
+            }
+
+            $order = $locked->order()->lockForUpdate()->first()?->load('delivery');
 
             $this->credit(
                 userId: $order->seller_id,
-                montant: $escrow->seller_amount,
+                montant: $locked->seller_amount,
                 source: 'vente',
                 sourceId: $order->id,
                 description: "Vente article — commande {$order->reference}",
             );
 
-            if ($escrow->rider_amount > 0 && $order->delivery && $order->delivery->rider_id) {
+            if ($locked->rider_amount > 0 && $order->delivery && $order->delivery->rider_id) {
                 $this->credit(
                     userId: $order->delivery->rider_id,
-                    montant: $escrow->rider_amount,
+                    montant: $locked->rider_amount,
                     source: 'livraison',
                     sourceId: $order->id,
                     description: "Frais de livraison — commande {$order->reference}",
                 );
             }
 
-            $escrow->update([
+            $locked->update([
                 'status' => 'libere',
                 'released_at' => now(),
                 'release_reason' => $reason,
             ]);
+            $escrow->setRawAttributes($locked->getAttributes(), true);
         });
     }
 
     /**
      * Rembourse l'acheteur (crédit sur son portefeuille in-app) en cas
-     * d'annulation ou de litige tranché en sa faveur. Idempotent.
+     * d'annulation ou de litige tranché en sa faveur. Idempotent, même en cas d'appels simultanés.
      */
     public function refund(Escrow $escrow, string $reason): void
     {
-        if (in_array($escrow->status->value, ['libere', 'rembourse'], true)) {
-            return;
-        }
-
         DB::transaction(function () use ($escrow, $reason) {
-            $order = $escrow->order()->lockForUpdate()->first();
+            $locked = $this->lockOpen($escrow);
+            if (! $locked) {
+                return;
+            }
+
+            $order = $locked->order()->lockForUpdate()->first();
 
             $this->credit(
                 userId: $order->buyer_id,
@@ -102,11 +107,12 @@ class EscrowService
                 description: "Remboursement — commande {$order->reference}",
             );
 
-            $escrow->update([
+            $locked->update([
                 'status' => 'rembourse',
                 'refunded_at' => now(),
                 'release_reason' => $reason,
             ]);
+            $escrow->setRawAttributes($locked->getAttributes(), true);
         });
     }
 
@@ -116,11 +122,23 @@ class EscrowService
      */
     public function markDisputed(Escrow $escrow): void
     {
-        if (in_array($escrow->status->value, ['libere', 'rembourse'], true)) {
-            return;
-        }
+        DB::transaction(function () use ($escrow) {
+            $locked = $this->lockOpen($escrow);
+            if (! $locked) {
+                return;
+            }
 
-        $escrow->update(['status' => 'litige']);
+            $locked->update(['status' => 'litige']);
+            $escrow->setRawAttributes($locked->getAttributes(), true);
+        });
+    }
+
+    /** Verrouille la ligne du séquestre ; null s'il est déjà libéré ou remboursé. */
+    private function lockOpen(Escrow $escrow): ?Escrow
+    {
+        $locked = Escrow::whereKey($escrow->id)->lockForUpdate()->firstOrFail();
+
+        return in_array($locked->status->value, ['libere', 'rembourse'], true) ? null : $locked;
     }
 
     private function credit(int $userId, int $montant, string $source, int $sourceId, string $description): void
@@ -129,17 +147,6 @@ class EscrowService
             return;
         }
 
-        $wallet = Wallet::firstOrCreate(['user_id' => $userId], ['balance' => 0, 'currency' => 'GNF']);
-        $wallet->increment('balance', $montant);
-
-        Transaction::create([
-            'wallet_id' => $wallet->id,
-            'type' => 'credit',
-            'montant' => $montant,
-            'reference' => 'TRX-' . strtoupper(\Illuminate\Support\Str::random(10)),
-            'source' => $source,
-            'source_id' => $sourceId,
-            'description' => $description,
-        ]);
+        $this->wallet->credit($userId, $montant, $source, $sourceId, $description);
     }
 }

@@ -25,6 +25,12 @@ class OrderController extends Controller
         if ($article->statut === 'vendu') {
             return back()->with('error', 'Cet article a déjà été vendu.');
         }
+        if (! $article->is_published) {
+            return back()->with('error', "Cette annonce n'est plus disponible.");
+        }
+        if ($article->user_id === Auth::id()) {
+            return back()->with('error', 'Vous ne pouvez pas acheter votre propre annonce.');
+        }
 
         $order = $this->orders->createForArticle(Auth::user(), $article, (int) $delivery === 1);
 

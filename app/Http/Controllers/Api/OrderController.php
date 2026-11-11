@@ -23,6 +23,12 @@ class OrderController extends Controller
         if ($article->statut === 'vendu') {
             return response()->json(['message' => 'Cet article a déjà été vendu.'], 409);
         }
+        if (! $article->is_published) {
+            return response()->json(['message' => "Cette annonce n'est plus disponible."], 409);
+        }
+        if ($article->user_id === $request->user()->id) {
+            return response()->json(['message' => 'Vous ne pouvez pas acheter votre propre annonce.'], 422);
+        }
         $total = $article->prix;
         $deliveryPrix = 0;
 
