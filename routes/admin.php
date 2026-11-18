@@ -8,7 +8,9 @@ use App\Http\Controllers\Admin\PartnerController as AdminPartnerController;
 use App\Http\Controllers\Admin\DeliveryController as AdminDeliveryController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1/admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+// Chargé sous le préfixe « api » et le groupe « api » (bootstrap/app.php) : /api/v1/admin/...
+// « active » : un administrateur suspendu perd l'accès, comme sur le reste de l'API.
+Route::prefix('v1/admin')->middleware(['auth:sanctum', 'active', 'role:admin'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index']);
     Route::get('users', [UserController::class, 'index']);
     Route::get('users/{user}', [UserController::class, 'show']);
