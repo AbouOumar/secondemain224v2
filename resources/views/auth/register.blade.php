@@ -70,8 +70,8 @@
 </div>
 <div class="mb-4 position-relative">
 <i class="bx bx-gift position-absolute" style="left: 18px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.2rem;"></i>
-<input type="text" name="referral_code" class="form-control text-uppercase" style="height: 52px; border-radius: 25px; padding-left: 45px;" placeholder="Code apporteur (facultatif)" maxlength="20" autocomplete="off" value="{{ old('referral_code', $referralCode ?? '') }}">
-<small class="text-muted d-block mt-2 ms-3">Un apporteur d'affaires vous a aidé à vous inscrire ? Saisissez son code.</small>
+<input type="text" name="referral_code" class="form-control text-uppercase" style="height: 52px; border-radius: 25px; padding-left: 45px;" placeholder="Code de parrainage (facultatif)" maxlength="20" autocomplete="off" value="{{ old('referral_code', $referralCode ?? '') }}">
+<small class="text-muted d-block mt-2 ms-3">Quelqu'un vous a fait connaître Seconde Main 224 ? Saisissez son code de parrainage.</small>
 </div>
 <div class="form-check mb-4 ms-2">
 <input class="form-check-input" type="checkbox" name="newsletter" value="1" id="newsletter" @checked(old('newsletter'))>
