@@ -18,18 +18,17 @@ class ForgotPasswordController extends Controller
     public function sendResetLink(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|email',
         ], [
             'email.required' => 'Veuillez saisir votre adresse e-mail.',
             'email.email' => 'Veuillez saisir une adresse e-mail valide.',
-            'email.exists' => 'Aucun compte n\'est associé à cette adresse e-mail.',
         ]);
 
-        $status = Password::sendResetLink($request->only('email'));
+        // Réponse identique que le compte existe ou non, et même si un lien vient
+        // déjà d'être envoyé : on ne révèle pas quelles adresses sont inscrites.
+        Password::sendResetLink($request->only('email'));
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with('status', 'Un lien de réinitialisation a été envoyé à votre adresse e-mail.')
-            : back()->withErrors(['email' => 'Impossible d\'envoyer le lien de réinitialisation. Veuillez réessayer.']);
+        return back()->with('status', 'Si un compte correspond à cette adresse, un lien de réinitialisation vient d\'être envoyé. Pensez à vérifier vos courriers indésirables.');
     }
 
     public function showResetForm(Request $request, string $token)

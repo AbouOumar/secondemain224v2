@@ -157,6 +157,23 @@ class AuthEmailsTest extends TestCase
         });
     }
 
+    public function test_web_forgot_password_does_not_reveal_whether_an_account_exists(): void
+    {
+        $user = User::factory()->create();
+
+        $message = "Si un compte correspond à cette adresse, un lien de réinitialisation vient d'être envoyé. Pensez à vérifier vos courriers indésirables.";
+
+        // Compte connu, compte inconnu, puis demande rapprochée (refusée par le courtier) : même réponse.
+        foreach ([$user->email, 'personne@example.com', $user->email] as $email) {
+            $this->from('/password/forgot')->post('/password/forgot', ['email' => $email])
+                ->assertRedirect('/password/forgot')
+                ->assertSessionHasNoErrors()
+                ->assertSessionHas('status', $message);
+        }
+
+        Notification::assertSentToTimes($user, ResetPasswordNotification::class, 1);
+    }
+
     public function test_api_forgot_password_by_email_does_not_reveal_unknown_accounts(): void
     {
         $user = User::factory()->create();
