@@ -10,4 +10,6 @@ return [
     'currency' => env('DJOMY_CURRENCY', 'GNF'),
     'webhook_secret' => env('DJOMY_WEBHOOK_SECRET'),
     'webhook_url' => env('DJOMY_WEBHOOK_URL', '/api/v1/payments/djomy/webhook'),
+    // Appels sortants en IPv4 uniquement (Djomy bloque l'IPv6 de certains hébergeurs).
+    'force_ipv4' => (bool) env('DJOMY_FORCE_IPV4', true),
 ];

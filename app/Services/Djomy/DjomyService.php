@@ -37,6 +37,12 @@ class DjomyService
             'Content-Type' => 'application/json',
         ])->timeout(8)->connectTimeout(5);
 
+        // Djomy refuse (403 « Accès interdit ») les appels venus de l'IPv6 de certains hébergeurs :
+        // on passe en IPv4, l'adresse que Djomy peut autoriser.
+        if (config('djomy.force_ipv4')) {
+            $client->withOptions(['force_ip_resolve' => 'v4']);
+        }
+
         if (config('djomy.sandbox')) {
             $client->withoutVerifying();
         }
