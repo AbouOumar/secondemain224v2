@@ -20,7 +20,7 @@ class PushRoute
             'achat_valide', 'nouvelle_commande', 'livraison_acceptee', 'livraison_livree', 'livraison_terminee' => '/orders/',
             'livraison_disponible', 'livraison_attribuee' => '/deliveries/',
             'retrait_traite', 'apporteur_gain' => '/wallet/',
-            'apporteur_traite' => '/profile/',
+            'apporteur_traite' => '/profile/apporteur/',
             'role_traite' => '/profile/role/',
             'paiement_confirme', 'paiement_recu', 'paiement_echoue' => '/orders/',
             'recharge_recue' => '/wallet/',

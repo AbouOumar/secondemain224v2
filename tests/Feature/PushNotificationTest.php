@@ -129,6 +129,8 @@ class PushNotificationTest extends TestCase
         foreach (['livraison.disponible', 'livraison.attribuee'] as $type) {
             $this->assertSame('/deliveries/', PushRoute::forNotification($type, []), $type);
         }
+        $this->assertSame('/profile/apporteur/', PushRoute::forNotification('apporteur_traite', []));
+        $this->assertSame('/wallet/', PushRoute::forNotification('apporteur_gain', []));
     }
 
     public function test_search_alert_opens_the_matching_article(): void
