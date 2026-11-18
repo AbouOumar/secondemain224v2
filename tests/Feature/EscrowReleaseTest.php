@@ -14,6 +14,13 @@ class EscrowReleaseTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Ces tests portent sur la mécanique du séquestre : sans commission, sauf mention contraire.
+        config(['marketplace.commission_rate' => 0.0]);
+    }
+
     private function makeOrder(int $prix = 100000, bool $withDelivery = false, int $deliveryPrix = 0): Order
     {
         $seller = User::factory()->create(['role' => 'vendeur']);

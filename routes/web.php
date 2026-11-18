@@ -66,6 +66,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/alertes', [SearchAlertController::class, 'index'])->name('alerts.index');
         Route::get('/emails', [EmailPreferenceController::class, 'edit'])->name('email-preferences');
         Route::post('/emails', [EmailPreferenceController::class, 'update'])->name('email-preferences.update');
+        Route::get('/apporteur', [\App\Http\Controllers\Web\ApporteurController::class, 'show'])->name('apporteur');
+        Route::post('/apporteur', [\App\Http\Controllers\Web\ApporteurController::class, 'apply'])->middleware('throttle:5,1')->name('apporteur.apply');
+        Route::delete('/apporteur', [\App\Http\Controllers\Web\ApporteurController::class, 'withdraw'])->name('apporteur.withdraw');
+        Route::post('/apporteur/code', [\App\Http\Controllers\Web\ApporteurController::class, 'attach'])->middleware('throttle:10,1')->name('apporteur.attach');
     });
 
     Route::post('/signalements', [ReportController::class, 'store'])->name('reports.store');
@@ -219,8 +223,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/{withdrawal}/refuser', [\App\Http\Controllers\Web\Admin\WithdrawalController::class, 'reject'])->name('reject');
     });
 
+    Route::prefix('apporteurs')->name('apporteurs.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'index'])->name('index');
+        Route::post('/{apporteur}/accepter', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'approve'])->name('approve');
+        Route::post('/{apporteur}/refuser', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'reject'])->name('reject');
+        Route::post('/{apporteur}/suspendre', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'suspend'])->name('suspend');
+        Route::post('/{apporteur}/reactiver', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'reactivate'])->name('reactivate');
+    });
+
     Route::prefix('partenaires')->name('partners.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'index'])->name('index');
+        Route::post('/{partner}/commission', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'commission'])->name('commission');
         Route::post('/{partner}/verifier', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'verify'])->name('verify');
         Route::post('/{partner}/devalider', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'unverify'])->name('unverify');
         Route::delete('/{partner}', [\App\Http\Controllers\Web\Admin\PartnerController::class, 'destroy'])->name('destroy');

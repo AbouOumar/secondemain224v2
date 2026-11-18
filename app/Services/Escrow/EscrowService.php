@@ -4,6 +4,8 @@ namespace App\Services\Escrow;
 
 use App\Models\Escrow;
 use App\Models\Order;
+use App\Models\Partner;
+use App\Services\Apporteur\ApporteurService;
 use App\Services\Wallet\WalletService;
 use Illuminate\Support\Facades\DB;
 
@@ -27,8 +29,7 @@ class EscrowService
             return $existing;
         }
 
-        $commissionRate = (float) config('marketplace.commission_rate', 0.0);
-        $commission = (int) round($order->prix_article * $commissionRate);
+        $commission = (int) round($order->prix_article * $this->commissionRateFor($order->seller_id));
         $sellerAmount = (int) $order->prix_article - $commission;
         $riderAmount = (int) ($order->with_delivery ? $order->delivery_prix : 0);
 
@@ -82,7 +83,24 @@ class EscrowService
                 'release_reason' => $reason,
             ]);
             $escrow->setRawAttributes($locked->getAttributes(), true);
+
+            // Première vente d'un vendeur recruté : part de la commission pour son apporteur.
+            app(ApporteurService::class)->rewardFirstSale($order, $locked);
         });
+    }
+
+    /**
+     * Taux de commission du vendeur : celui de son magasin partenaire vérifié (réglé par
+     * l'admin, sinon le taux partenaire par défaut), ou le taux des particuliers.
+     */
+    public function commissionRateFor(int $sellerId): float
+    {
+        $partner = Partner::where('user_id', $sellerId)->where('is_verified', true)->first();
+        if (! $partner) {
+            return (float) config('marketplace.commission_rate', 0.0);
+        }
+
+        return (float) ($partner->commission_rate ?? config('marketplace.partner_commission_rate', 0.0));
     }
 
     /**

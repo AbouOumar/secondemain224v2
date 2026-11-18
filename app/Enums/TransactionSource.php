@@ -11,4 +11,5 @@ enum TransactionSource: string
     case Remboursement = 'remboursement';
     case Boost = 'boost';
     case Abonnement = 'abonnement';
+    case Apport = 'apport';
 }

@@ -6,6 +6,8 @@ use App\Models\RoleRequest;
 use App\Models\User;
 use App\Services\Account\RoleRequestService;
 use App\Services\Auth\LoginAttemptGuard;
+use App\Services\Apporteur\ApporteurService;
+use App\Rules\ActiveApporteurCode;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -67,9 +69,10 @@ class AuthController extends Controller
         return $this->redirectByRole();
     }
 
-    public function showRegister()
+    public function showRegister(Request $request)
     {
-        return view('auth.register');
+        // Lien partagé par un apporteur : /register?ref=CODE pré-remplit son code.
+        return view('auth.register', ['referralCode' => $request->query('ref')]);
     }
 
     public function register(Request $request)
@@ -81,6 +84,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'nullable|string|in:acheteur,vendeur,revendeur_pro,motard',
             'newsletter' => 'nullable|boolean',
+            'referral_code' => ['nullable', 'string', 'max:20', new ActiveApporteurCode],
         ]);
 
         // Livreur et revendeur pro s'obtiennent sur demande, après examen (voir l'API d'inscription).
@@ -104,6 +108,9 @@ class AuthController extends Controller
         }
 
         Wallet::create(['user_id' => $user->id]);
+        if ($request->filled('referral_code')) {
+            app(ApporteurService::class)->attachReferral($user, $request->referral_code);
+        }
         $user->notify(new WelcomeNotification);
 
         Auth::login($user);

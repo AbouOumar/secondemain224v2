@@ -13,6 +13,7 @@ class RegisterRequest extends FormRequest
             'password' => 'required|string|min:8|confirmed',
             'role' => 'nullable|string|in:acheteur,vendeur,revendeur_pro,motard',
             'newsletter' => 'nullable|boolean',
+            'referral_code' => ['nullable', 'string', 'max:20', new \App\Rules\ActiveApporteurCode],
         ];
     }
 }

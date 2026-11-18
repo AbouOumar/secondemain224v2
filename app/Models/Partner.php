@@ -21,6 +21,7 @@ class Partner extends Model
         'horaire',
         'is_verified',
         'abonnement_fin',
+        'commission_rate',
     ];
 
     protected function casts(): array
@@ -29,6 +30,7 @@ class Partner extends Model
             'is_verified' => 'boolean',
             'abonnement_fin' => 'datetime',
             'horaire' => 'array',
+            'commission_rate' => 'float',
         ];
     }
 

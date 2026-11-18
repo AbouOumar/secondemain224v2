@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\SearchAlertController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\RoleRequestController;
+use App\Http\Controllers\Api\ApporteurController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\SellerDashboardController;
@@ -62,6 +63,10 @@ Route::prefix('v1')->group(function () {
         Route::get('role-request', [RoleRequestController::class, 'show']);
         Route::post('role-request', [RoleRequestController::class, 'store'])->middleware('throttle:5,1,role-request');
         Route::delete('role-request', [RoleRequestController::class, 'destroy']);
+        Route::get('apporteur', [ApporteurController::class, 'show']);
+        Route::post('apporteur', [ApporteurController::class, 'store'])->middleware('throttle:5,1,apporteur');
+        Route::delete('apporteur', [ApporteurController::class, 'destroy']);
+        Route::post('apporteur/code', [ApporteurController::class, 'attach'])->middleware('throttle:10,1,apporteur-code');
         Route::post('devices', [DeviceTokenController::class, 'store']);
         Route::delete('devices', [DeviceTokenController::class, 'destroy']);
         Route::get('profile', [ProfileController::class, 'show']);
