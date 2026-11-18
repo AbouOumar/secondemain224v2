@@ -52,7 +52,9 @@ class DjomyService
             return Cache::remember($cacheKey, now()->addMinutes(55), function () {
                 $response = $this->client()
                     ->withHeaders(['X-API-KEY' => $this->apiKeyHeader()])
-                    ->post("{$this->baseUrl}/v1/auth", []);
+                    // Corps « {} » : un tableau PHP vide serait envoyé « [] », que Djomy rejette (400).
+                    ->withBody('{}', 'application/json')
+                    ->post("{$this->baseUrl}/v1/auth");
 
                 if ($response->successful()) {
                     $data = $response->json();
