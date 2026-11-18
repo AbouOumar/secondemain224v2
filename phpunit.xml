@@ -27,6 +27,10 @@
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
+        <!-- Identifiants factices : les tests ne doivent jamais utiliser ceux de .env -->
+        <env name="DJOMY_CLIENT_ID" value="test-client-id" force="true"/>
+        <env name="DJOMY_CLIENT_SECRET" value="test-client-secret" force="true"/>
+        <env name="DJOMY_SANDBOX" value="true" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>

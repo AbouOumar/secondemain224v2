@@ -153,4 +153,69 @@ class EscrowReleaseTest extends TestCase
         $this->assertSame('rembourse', $escrow->status->value);
         $this->assertNull($order->seller->fresh()->wallet);
     }
+
+    public function test_stale_escrow_instance_cannot_release_twice(): void
+    {
+        $order = $this->makeOrder(prix: 100000);
+        $service = app(EscrowService::class);
+        $escrow = $service->hold($order);
+
+        // Deux processus (cron + confirmation de l'acheteur) tiennent chacun leur copie « retenu ».
+        $copyA = \App\Models\Escrow::find($escrow->id);
+        $copyB = \App\Models\Escrow::find($escrow->id);
+
+        $service->release($copyA, 'confirmation_reception');
+        $service->release($copyB, 'liberation_automatique');
+        $service->refund($copyB, 'annulation_commande');
+
+        $this->assertEquals(100000, $order->seller->fresh()->wallet->balance);
+        $this->assertSame(1, \App\Models\Transaction::where('source', 'vente')->where('source_id', $order->id)->count());
+        $this->assertSame(0, \App\Models\Transaction::where('source', 'remboursement')->count());
+        $this->assertSame('libere', $escrow->fresh()->status->value);
+    }
+
+    public function test_confirming_payment_twice_decrements_stock_once_and_never_below_zero(): void
+    {
+        $order = $this->makeOrder(prix: 100000);
+        $order->update(['status' => 'en_attente_paiement']);
+        $order->article->update(['stock' => 3]);
+        $payment = \App\Models\Payment::create([
+            'reference' => 'PAY-' . uniqid(),
+            'order_id' => $order->id,
+            'user_id' => $order->buyer_id,
+            'montant' => 100000,
+            'currency' => 'GNF',
+            'methode' => 'portefeuille',
+            'status' => 'succes',
+        ]);
+
+        $service = app(\App\Services\Payment\PaymentProcessingService::class);
+        $service->confirmPayment($payment);
+        $service->confirmPayment($payment);
+
+        $this->assertSame(2, $order->article->fresh()->stock);
+        $this->assertSame(1, \App\Models\Escrow::where('order_id', $order->id)->count());
+    }
+
+    public function test_last_piece_is_marked_sold_and_stock_stays_at_zero(): void
+    {
+        $order = $this->makeOrder(prix: 100000);
+        $order->update(['status' => 'en_attente_paiement']);
+        $order->article->update(['stock' => 1]);
+        $payment = \App\Models\Payment::create([
+            'reference' => 'PAY-' . uniqid(),
+            'order_id' => $order->id,
+            'user_id' => $order->buyer_id,
+            'montant' => 100000,
+            'currency' => 'GNF',
+            'methode' => 'portefeuille',
+            'status' => 'succes',
+        ]);
+
+        app(\App\Services\Payment\PaymentProcessingService::class)->confirmPayment($payment);
+
+        $article = $order->article->fresh();
+        $this->assertSame(0, $article->stock);
+        $this->assertSame('vendu', $article->statut);
+    }
 }
