@@ -13,11 +13,12 @@ class AuthHardeningTest extends TestCase
 
     public function test_login_is_rate_limited_with_a_french_message(): void
     {
+        // Identifiants différents : on teste ici la limite par IP de la route, pas le verrou par compte.
         for ($i = 0; $i < 10; $i++) {
-            $this->postJson('/api/v1/auth/login', ['login' => 'inconnu@example.com', 'password' => 'mauvais-mdp'])->assertStatus(401);
+            $this->postJson('/api/v1/auth/login', ['login' => "inconnu{$i}@example.com", 'password' => 'mauvais-mdp'])->assertStatus(401);
         }
 
-        $this->postJson('/api/v1/auth/login', ['login' => 'inconnu@example.com', 'password' => 'mauvais-mdp'])
+        $this->postJson('/api/v1/auth/login', ['login' => 'inconnu-x@example.com', 'password' => 'mauvais-mdp'])
             ->assertStatus(429)
             ->assertJsonPath('message', fn ($m) => str_contains($m, 'Trop de tentatives'));
     }

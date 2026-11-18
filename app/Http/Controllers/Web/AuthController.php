@@ -5,6 +5,7 @@ use App\Notifications\Auth\WelcomeNotification;
 use App\Models\RoleRequest;
 use App\Models\User;
 use App\Services\Account\RoleRequestService;
+use App\Services\Auth\LoginAttemptGuard;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,25 +36,35 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $credentials = $request->only('password');
-        $login = $request->login;
+        $login = (string) $request->login;
+        $ip = (string) $request->ip();
+        $guard = app(LoginAttemptGuard::class);
 
         $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        $user = User::where($field, $login)->first();
 
-        if (Auth::attempt([$field => $login, 'password' => $request->password], $request->boolean('remember'))) {
-            if (Auth::user()->status?->value === 'suspendu') {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
-                return back()->withErrors(['login' => 'Ce compte a été suspendu.'])->onlyInput('login');
-            }
-
-            $request->session()->regenerate();
-            return $this->redirectByRole();
+        if ($wait = $guard->lockedFor($login, $ip, $user)) {
+            return back()->withErrors(['login' => $guard->lockedMessage($wait)])->onlyInput('login');
         }
 
-        return back()->withErrors(['login' => 'Identifiants incorrects.'])->onlyInput('login');
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            $remaining = $guard->failed($login, $ip, $user);
+            $message = $remaining === 0
+                ? $guard->lockedMessage($guard->lockedFor($login, $ip, $user))
+                : $guard->failureMessage($remaining);
+
+            return back()->withErrors(['login' => $message])->onlyInput('login');
+        }
+
+        $guard->succeeded($login, $ip, $user);
+        if ($user->status?->value === 'suspendu') {
+            return back()->withErrors(['login' => 'Ce compte a été suspendu.'])->onlyInput('login');
+        }
+
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
+        return $this->redirectByRole();
     }
 
     public function showRegister()
