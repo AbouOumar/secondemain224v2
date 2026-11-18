@@ -5,6 +5,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\RoleRequest;
 use App\Models\User;
 use App\Services\Account\RoleRequestService;
+use App\Services\Apporteur\ApporteurService;
 use App\Models\Wallet;
 use App\Notifications\Auth\WelcomeNotification;
 use Illuminate\Support\Facades\Hash;
@@ -33,6 +34,9 @@ class RegisterController extends Controller
             $user->forceFill(['newsletter_subscribed_at' => now()])->save();
         }
         Wallet::create(['user_id' => $user->id, 'balance' => 0, 'currency' => 'GNF']);
+        if ($request->filled('referral_code')) {
+            app(ApporteurService::class)->attachReferral($user, $request->referral_code);
+        }
         $user->notify(new WelcomeNotification);
         $token = $user->createToken('auth-token')->plainTextToken;
         return response()->json([

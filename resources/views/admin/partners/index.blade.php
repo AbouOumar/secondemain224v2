@@ -21,6 +21,7 @@
                         <th>Propriétaire</th>
                         <th>Téléphone</th>
                         <th>Statut</th>
+                        <th title="Appliquée aux magasins vérifiés ; les autres paient le taux des particuliers">Commission</th>
                         <th>Créé le</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -37,6 +38,16 @@
                                 <span class="badge {{ $partner->is_verified ? 'badge-soft-success' : 'badge-soft-warning' }}">
                                     {{ $partner->is_verified ? 'Vérifié' : 'En attente' }}
                                 </span>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ route('admin.partners.commission', $partner) }}" class="d-flex gap-1 align-items-center" style="min-width: 150px;">
+                                    @csrf
+                                    <input type="number" name="rate" step="0.5" min="{{ config('marketplace.partner_commission_min') * 100 }}" max="{{ config('marketplace.partner_commission_max') * 100 }}"
+                                           value="{{ $partner->commission_rate !== null ? $partner->commission_rate * 100 : '' }}"
+                                           placeholder="{{ config('marketplace.partner_commission_rate') * 100 }}" class="form-control form-control-sm" style="width: 70px;">
+                                    <span class="small">%</span>
+                                    <button class="btn btn-sm btn-outline-primary">OK</button>
+                                </form>
                             </td>
                             <td class="small text-muted">{{ $partner->created_at->format('d/m/Y') }}</td>
                             <td class="text-end">
@@ -61,7 +72,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center text-muted py-4">Aucun magasin.</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted py-4">Aucun magasin.</td></tr>
                     @endforelse
                 </tbody>
             </table>

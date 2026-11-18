@@ -20,6 +20,9 @@
     <a href="{{ route('profile.email-preferences') }}" class="btn {{ str_starts_with($currentRoute, 'profile.email-preferences') ? 'btn-primary' : 'btn-outline-secondary' }} px-4">
         <i class="bx bx-envelope"></i> E-mails
     </a>
+    <a href="{{ route('profile.apporteur') }}" class="btn {{ str_starts_with($currentRoute, 'profile.apporteur') ? 'btn-primary' : 'btn-outline-secondary' }} px-4">
+        <i class="bx bx-gift"></i> Apporteur
+    </a>
     <a href="{{ route('profile.edit') }}" class="btn {{ str_starts_with($currentRoute, 'profile.edit') ? 'btn-primary' : 'btn-outline-secondary' }} px-4">
         <i class="bx bx-user"></i> Mon profil
     </a>

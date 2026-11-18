@@ -54,6 +54,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_verified' => 'boolean',
             'verified_at' => 'datetime',
             'verification_documents' => 'array',
+            'referred_at' => 'datetime',
         ];
     }
 
@@ -201,6 +202,18 @@ class User extends Authenticatable implements MustVerifyEmail
     public function partner()
     {
         return $this->hasOne(Partner::class);
+    }
+
+    /** Le programme apporteur de ce compte (sa candidature, son code). */
+    public function apporteurProfile()
+    {
+        return $this->hasOne(Apporteur::class);
+    }
+
+    /** L'apporteur qui a recruté ce compte, s'il y en a un. */
+    public function referrer()
+    {
+        return $this->belongsTo(Apporteur::class, 'apporteur_id');
     }
 
     public function oauthProviders()
