@@ -18,6 +18,11 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
+    # Page d'accueil (adresse du dossier, ex. /public/) : réécrite vers index.php comme les
+    # autres pages, plutôt que servie par l'index de dossier du serveur, qui transmet mal
+    # la requête chez certains hébergeurs (réponse 405 « Method Not Allowed »).
+    RewriteRule ^$ index.php [L]
+
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
