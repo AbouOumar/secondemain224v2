@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Programme « apporteur d'affaires » :
- *  - candidature, examinée par l'administration, qui attribue un code personnel ;
+ *  - tout utilisateur a un code de parrainage personnel, créé à la demande, sans validation ;
+ *  - il le partage par un lien (/parrainage/CODE) ou le donne de vive voix ;
  *  - un vendeur saisit ce code à l'inscription (ou plus tard, tant qu'il n'a rien vendu) ;
  *  - à la première vente de ce vendeur payée en ligne, l'apporteur reçoit une part de la
  *    commission de la plateforme dans son portefeuille, à la libération du séquestre.
@@ -33,114 +34,39 @@ class ApporteurService
         private FirebaseNotificationService $notifications,
     ) {}
 
-    public static function detailRules(): array
-    {
-        return [
-            'quartier' => 'required|string|max:100',
-            'activite' => 'nullable|string|max:100',
-            'motivation' => 'nullable|string|max:500',
-        ];
-    }
-
     /**
-     * @param array{quartier: string, activite?: ?string, motivation?: ?string} $details
-     * @throws ApporteurException déjà apporteur (409), demande en cours (409), compte suspendu (403)
+     * Code de parrainage du compte, créé à la première demande : tout utilisateur devient
+     * apporteur sans validation (comme un lien de parrainage). Un apporteur suspendu le reste.
+     * Les administrateurs ne participent pas au programme.
+     *
+     * @throws ApporteurException compte administrateur (403)
      */
-    public function apply(User $user, array $details): Apporteur
+    public function activate(User $user): Apporteur
     {
-        $apporteur = DB::transaction(function () use ($user, $details) {
-            $existing = Apporteur::where('user_id', $user->id)->lockForUpdate()->first();
+        if ($user->role?->value === 'admin') {
+            throw new ApporteurException('Les comptes administrateurs ne participent pas au programme apporteur.', 403);
+        }
 
-            if ($existing?->status === Apporteur::ACTIVE) {
-                throw new ApporteurException('Vous êtes déjà apporteur d\'affaires.', 409);
-            }
-            if ($existing?->status === Apporteur::PENDING) {
-                throw new ApporteurException('Votre demande est déjà en cours d\'examen.', 409);
-            }
-            if ($existing?->status === Apporteur::SUSPENDED) {
-                throw new ApporteurException('Votre accès apporteur est suspendu. Contactez l\'équipe.', 403);
-            }
-
-            // Nouvelle candidature, ou nouvelle tentative après un refus.
-            $apporteur = $existing ?? new Apporteur(['user_id' => $user->id]);
-            $apporteur->fill([
-                'status' => Apporteur::PENDING,
-                'details' => $details,
-                'note' => null,
-                'processed_by' => null,
-                'processed_at' => null,
-            ])->save();
-
+        $apporteur = Apporteur::where('user_id', $user->id)->first();
+        if ($apporteur && ($apporteur->isActive() || $apporteur->status === Apporteur::SUSPENDED)) {
             return $apporteur;
-        });
-
-        $this->notifications->sendToAdmins(
-            'Nouvelle candidature apporteur',
-            "{$user->name} veut devenir apporteur d'affaires ({$details['quartier']}).",
-            'admin.apporteur_demande',
-            ['apporteur_id' => $apporteur->id],
-        );
-
-        return $apporteur;
-    }
-
-    /** Le candidat retire sa demande en attente. */
-    public function withdraw(User $user): void
-    {
-        Apporteur::where('user_id', $user->id)->where('status', Apporteur::PENDING)->delete();
-    }
-
-    /** Accepte la candidature et attribue un code. Faux si elle avait déjà été traitée. */
-    public function approve(Apporteur $apporteur, User $admin): bool
-    {
-        $done = DB::transaction(function () use ($apporteur, $admin) {
-            $locked = Apporteur::whereKey($apporteur->id)->lockForUpdate()->first();
-            if (! $locked || $locked->status !== Apporteur::PENDING) {
-                return false;
-            }
-
-            $locked->fill([
-                'status' => Apporteur::ACTIVE,
-                'code' => $locked->code ?? $this->uniqueCode(),
-                'note' => null,
-                'processed_by' => $admin->id,
-                'processed_at' => now(),
-            ])->save();
-            $apporteur->setRawAttributes($locked->getAttributes(), true);
-
-            return true;
-        });
-
-        if ($done) {
-            $this->notifications->sendQuietly(
-                $apporteur->user,
-                'Vous êtes apporteur d\'affaires',
-                "Bienvenue dans l'équipe ! Votre code est {$apporteur->code} : donnez-le aux vendeurs que vous inscrivez.",
-                'apporteur_traite',
-                ['status' => Apporteur::ACTIVE, 'code' => $apporteur->code],
-            );
         }
 
-        return $done;
-    }
+        try {
+            return DB::transaction(function () use ($user) {
+                $apporteur = Apporteur::where('user_id', $user->id)->lockForUpdate()->first()
+                    ?? new Apporteur(['user_id' => $user->id]);
+                if (! $apporteur->exists || ! in_array($apporteur->status, [Apporteur::ACTIVE, Apporteur::SUSPENDED], true)) {
+                    // Nouveau, ou ancienne candidature restée en attente / refusée (avant le parrainage ouvert).
+                    $apporteur->fill(['status' => Apporteur::ACTIVE, 'code' => $apporteur->code ?? $this->uniqueCode()])->save();
+                }
 
-    /** Refuse la candidature. Faux si elle avait déjà été traitée. */
-    public function reject(Apporteur $apporteur, User $admin, ?string $note): bool
-    {
-        $done = Apporteur::whereKey($apporteur->id)->where('status', Apporteur::PENDING)
-            ->update(['status' => Apporteur::REJECTED, 'note' => $note, 'processed_by' => $admin->id, 'processed_at' => now()]) === 1;
-
-        if ($done) {
-            $this->notifications->sendQuietly(
-                $apporteur->user,
-                'Candidature apporteur',
-                "Votre candidature d'apporteur d'affaires n'a pas été retenue" . ($note ? " : {$note}." : '.'),
-                'apporteur_traite',
-                ['status' => Apporteur::REJECTED],
-            );
+                return $apporteur;
+            });
+        } catch (QueryException) {
+            // Deux ouvertures simultanées de l'écran : l'autre a créé le code.
+            return Apporteur::where('user_id', $user->id)->firstOrFail();
         }
-
-        return $done;
     }
 
     /**
@@ -151,8 +77,28 @@ class ApporteurService
     {
         [$from, $to] = $suspended ? [Apporteur::ACTIVE, Apporteur::SUSPENDED] : [Apporteur::SUSPENDED, Apporteur::ACTIVE];
 
-        return Apporteur::whereKey($apporteur->id)->where('status', $from)
+        $done = Apporteur::whereKey($apporteur->id)->where('status', $from)
             ->update(['status' => $to, 'note' => $note, 'processed_by' => $admin->id, 'processed_at' => now()]) === 1;
+
+        if ($done) {
+            $this->notifications->sendQuietly(
+                $apporteur->user,
+                $suspended ? 'Parrainage suspendu' : 'Parrainage réactivé',
+                $suspended
+                    ? "Votre code de parrainage est suspendu" . ($note ? " : {$note}." : '.') . ' Contactez l\'équipe pour en savoir plus.'
+                    : 'Votre code de parrainage fonctionne de nouveau.',
+                'apporteur_traite',
+                ['status' => $to],
+            );
+        }
+
+        return $done;
+    }
+
+    /** Lien de parrainage à partager : il contient le code et ouvre l'inscription pré-remplie. */
+    public static function shareLink(string $code): string
+    {
+        return route('referral.link', ['code' => $code]);
     }
 
     /** Apporteur actif correspondant au code saisi (insensible à la casse et aux espaces). */

@@ -28,6 +28,9 @@ Route::prefix('password')->name('password.')->group(function () {
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+// Lien de parrainage à partager (WhatsApp…) : contient le code de l'apporteur.
+Route::get('/parrainage/{code}', [\App\Http\Controllers\Web\ApporteurController::class, 'link'])
+    ->where('code', '[A-Za-z0-9]{4,20}')->middleware('throttle:30,1')->name('referral.link');
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
 // POST uniquement : un lien GET permettrait à un site tiers de déconnecter l'utilisateur.
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -67,8 +70,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/emails', [EmailPreferenceController::class, 'edit'])->name('email-preferences');
         Route::post('/emails', [EmailPreferenceController::class, 'update'])->name('email-preferences.update');
         Route::get('/apporteur', [\App\Http\Controllers\Web\ApporteurController::class, 'show'])->name('apporteur');
-        Route::post('/apporteur', [\App\Http\Controllers\Web\ApporteurController::class, 'apply'])->middleware('throttle:5,1')->name('apporteur.apply');
-        Route::delete('/apporteur', [\App\Http\Controllers\Web\ApporteurController::class, 'withdraw'])->name('apporteur.withdraw');
         Route::post('/apporteur/code', [\App\Http\Controllers\Web\ApporteurController::class, 'attach'])->middleware('throttle:10,1')->name('apporteur.attach');
     });
 
@@ -225,8 +226,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     Route::prefix('apporteurs')->name('apporteurs.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'index'])->name('index');
-        Route::post('/{apporteur}/accepter', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'approve'])->name('approve');
-        Route::post('/{apporteur}/refuser', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'reject'])->name('reject');
         Route::post('/{apporteur}/suspendre', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'suspend'])->name('suspend');
         Route::post('/{apporteur}/reactiver', [\App\Http\Controllers\Web\Admin\ApporteurController::class, 'reactivate'])->name('reactivate');
     });

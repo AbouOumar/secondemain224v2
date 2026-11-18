@@ -8,6 +8,7 @@ use App\Services\Account\RoleRequestService;
 use App\Services\Auth\LoginAttemptGuard;
 use App\Services\Apporteur\ApporteurService;
 use App\Rules\ActiveApporteurCode;
+use App\Http\Controllers\Web\ApporteurController;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -71,8 +72,11 @@ class AuthController extends Controller
 
     public function showRegister(Request $request)
     {
-        // Lien partagé par un apporteur : /register?ref=CODE pré-remplit son code.
-        return view('auth.register', ['referralCode' => $request->query('ref')]);
+        // Lien de parrainage (/parrainage/CODE ou /register?ref=CODE) : son code est pré-rempli,
+        // y compris si le visiteur a parcouru le site avant de s'inscrire (code gardé en session).
+        $code = $request->query('ref') ?? $request->session()->get(ApporteurController::SESSION_KEY);
+
+        return view('auth.register', ['referralCode' => is_string($code) ? strtoupper($code) : null]);
     }
 
     public function register(Request $request)
@@ -111,6 +115,7 @@ class AuthController extends Controller
         if ($request->filled('referral_code')) {
             app(ApporteurService::class)->attachReferral($user, $request->referral_code);
         }
+        $request->session()->forget(ApporteurController::SESSION_KEY);
         $user->notify(new WelcomeNotification);
 
         Auth::login($user);

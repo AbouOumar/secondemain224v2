@@ -37,11 +37,8 @@ class ApporteurProgramTest extends TestCase
     private function activeApporteur(?User $user = null): Apporteur
     {
         $user ??= User::factory()->create(['role' => 'motard']);
-        $service = app(ApporteurService::class);
-        $apporteur = $service->apply($user, ['quartier' => 'Gbessia']);
-        $service->approve($apporteur, $this->admin);
 
-        return $apporteur->fresh();
+        return app(ApporteurService::class)->activate($user)->fresh();
     }
 
     private function article(User $seller, int $prix, bool $published = true): Article
@@ -88,23 +85,68 @@ class ApporteurProgramTest extends TestCase
         return (int) Wallet::where('user_id', $user->id)->value('balance');
     }
 
-    public function test_application_is_reviewed_and_an_easy_code_is_given_on_approval(): void
+    public function test_everyone_gets_a_referral_code_and_link_without_approval(): void
     {
         $user = User::factory()->create(['role' => 'vendeur']);
 
-        $this->actingAs($user, 'sanctum')->postJson('/api/v1/apporteur', ['quartier' => 'Kaloum', 'activite' => 'Étudiant'])
-            ->assertCreated()->assertJsonPath('data.status', 'en_attente')->assertJsonPath('data.code', null);
-        $this->actingAs($user, 'sanctum')->postJson('/api/v1/apporteur', ['quartier' => 'Kaloum'])->assertStatus(409);
-        $this->assertDatabaseHas('notifications', ['user_id' => $this->admin->id, 'type' => 'admin.apporteur_demande']);
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/v1/apporteur')
+            ->assertOk()->assertJsonPath('data.apporteur.status', 'actif');
+        $code = $response->json('data.apporteur.code');
+        $this->assertMatchesRegularExpression('/^[A-HJKMNP-Z2-9]{6}$/', $code);
+        $this->assertSame(url('/parrainage/'.$code), $response->json('data.apporteur.share_link'));
 
-        $apporteur = Apporteur::where('user_id', $user->id)->first();
-        $this->actingAs($this->admin)->post(route('admin.apporteurs.approve', $apporteur))->assertRedirect();
+        // Toujours le même code, sans doublon ; le rôle du compte ne change pas.
+        $this->actingAs($user, 'sanctum')->getJson('/api/v1/apporteur')->assertJsonPath('data.apporteur.code', $code);
+        $this->assertSame(1, Apporteur::where('user_id', $user->id)->count());
+        $this->assertSame('vendeur', $user->fresh()->role->value);
+        $this->assertDatabaseMissing('notifications', ['user_id' => $this->admin->id]);
+    }
 
-        $apporteur->refresh();
-        $this->assertSame('actif', $apporteur->status);
-        $this->assertMatchesRegularExpression('/^[A-HJKMNP-Z2-9]{6}$/', $apporteur->code);
-        $this->assertDatabaseHas('notifications', ['user_id' => $user->id, 'type' => 'apporteur_traite']);
-        $this->assertSame('vendeur', $user->fresh()->role->value); // le rôle du compte ne change pas
+    public function test_admins_do_not_get_a_code(): void
+    {
+        $this->actingAs($this->admin, 'sanctum')->getJson('/api/v1/apporteur')->assertOk()->assertJsonPath('data.apporteur', null);
+        $this->assertSame(0, Apporteur::count());
+    }
+
+    public function test_the_shared_link_contains_the_code_and_prefills_registration(): void
+    {
+        $apporteur = $this->activeApporteur();
+
+        $this->get('/parrainage/'.strtolower($apporteur->code))
+            ->assertRedirect(route('register', ['ref' => $apporteur->code]));
+
+        // Le visiteur parcourt le site puis revient s'inscrire : le code est gardé.
+        $this->get('/register')->assertOk()->assertSee('value="'.$apporteur->code.'"', false);
+
+        $this->post('/register', [
+            'name' => 'Kadiatou', 'email' => 'kadiatou@example.com', 'phone' => '+224622000555',
+            'password' => 'secret-123', 'password_confirmation' => 'secret-123',
+            'role' => 'vendeur', 'referral_code' => $apporteur->code,
+        ])->assertRedirect();
+        $this->assertSame($apporteur->id, User::where('email', 'kadiatou@example.com')->value('apporteur_id'));
+
+        // Code inconnu : inscription normale, sans code.
+        $this->get('/parrainage/ZZZZZZ')->assertRedirect(route('register'));
+    }
+
+    public function test_pending_and_refused_applications_become_active_codes(): void
+    {
+        $pending = User::factory()->create();
+        $refused = User::factory()->create();
+        $suspended = User::factory()->create();
+        Apporteur::create(['user_id' => $pending->id, 'status' => 'en_attente']);
+        Apporteur::create(['user_id' => $refused->id, 'status' => 'refuse', 'note' => 'Ancien refus']);
+        Apporteur::create(['user_id' => $suspended->id, 'status' => 'suspendu', 'code' => 'SUSP22']);
+
+        (require database_path('migrations/2026_11_19_000001_open_apporteur_program.php'))->up();
+
+        foreach ([$pending, $refused] as $user) {
+            $apporteur = Apporteur::where('user_id', $user->id)->first();
+            $this->assertSame('actif', $apporteur->status);
+            $this->assertNotNull($apporteur->code);
+        }
+        $this->assertSame('suspendu', Apporteur::where('user_id', $suspended->id)->value('status'));
+        $this->assertSame('suspendu', app(ApporteurService::class)->activate($suspended)->status);
     }
 
     public function test_a_seller_registering_with_the_code_is_linked_to_the_apporteur(): void
@@ -265,7 +307,7 @@ class ApporteurProgramTest extends TestCase
         $this->actingAs($apporteur->user, 'sanctum')->getJson('/api/v1/apporteur')
             ->assertOk()
             ->assertJsonPath('data.apporteur.code', $apporteur->code)
-            ->assertJsonPath('data.apporteur.share_link', route('register', ['ref' => $apporteur->code]))
+            ->assertJsonPath('data.apporteur.share_link', route('referral.link', ['code' => $apporteur->code]))
             ->assertJsonPath('data.apporteur.stats.sellers', 1)
             ->assertJsonPath('data.apporteur.stats.active_sellers', 1)
             ->assertJsonPath('data.apporteur.stats.first_sales', 1)
@@ -273,10 +315,11 @@ class ApporteurProgramTest extends TestCase
             ->assertJsonPath('data.apporteur.recent_gains.0.seller', 'Aminata')
             ->assertJsonPath('data.share_percent', 30);
 
-        $this->actingAs($seller, 'sanctum')->getJson('/api/v1/apporteur')
-            ->assertJsonPath('data.apporteur', null)
+        // Le filleul a lui aussi son propre code, et voit qui l'a parrainé.
+        $sellerView = $this->actingAs($seller, 'sanctum')->getJson('/api/v1/apporteur')
             ->assertJsonPath('data.referred_by', $apporteur->user->name)
             ->assertJsonPath('data.can_enter_code', false);
+        $this->assertNotSame($apporteur->code, $sellerView->json('data.apporteur.code'));
     }
 
     public function test_leaderboard_counts_sellers_who_published_an_ad(): void
@@ -306,16 +349,16 @@ class ApporteurProgramTest extends TestCase
             ->assertOk()->assertSee('Classement de la semaine')->assertSee($top->code);
     }
 
-    public function test_profile_page_follows_the_apporteur_lifecycle(): void
+    public function test_profile_page_shows_the_code_and_link_right_away(): void
     {
         $user = User::factory()->create(['role' => 'vendeur']);
 
-        $this->actingAs($user)->get(route('profile.apporteur'))->assertOk()->assertSee('Devenez apporteur');
-        $this->actingAs($user)->post(route('profile.apporteur.apply'), ['quartier' => 'Ratoma'])->assertSessionHas('success');
-        $this->actingAs($user)->get(route('profile.apporteur'))->assertSee('Candidature en cours');
-
-        app(ApporteurService::class)->approve($user->apporteurProfile, $this->admin);
+        $response = $this->actingAs($user)->get(route('profile.apporteur'))->assertOk();
         $code = $user->apporteurProfile()->value('code');
-        $this->actingAs($user)->get(route('profile.apporteur'))->assertSee($code)->assertSee('Vendeurs apportés');
+        $response->assertSee($code)->assertSee(url('/parrainage/'.$code))->assertSee('Personnes parrainées');
+
+        app(ApporteurService::class)->setSuspended($user->apporteurProfile()->first(), true, $this->admin, 'Abus');
+        $this->actingAs($user)->get(route('profile.apporteur'))->assertSee('suspendu')->assertDontSee(url('/parrainage/'.$code));
+        $this->assertDatabaseHas('notifications', ['user_id' => $user->id, 'type' => 'apporteur_traite']);
     }
 }

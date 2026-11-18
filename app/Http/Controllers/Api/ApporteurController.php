@@ -8,46 +8,31 @@ use App\Models\Apporteur;
 use App\Services\Apporteur\ApporteurService;
 use Illuminate\Http\Request;
 
-/** Programme apporteur d'affaires, côté app : candidature, code, gains, saisie d'un code. */
+/** Parrainage côté app : son code et son lien, ses gains, et la saisie du code de son parrain. */
 class ApporteurController extends Controller
 {
     public function __construct(private ApporteurService $apporteurs) {}
 
     /**
-     * État du compte dans le programme : sa candidature ou son code et ses gains,
-     * et l'apporteur qui l'a recruté.
+     * Code de parrainage du compte (créé à la première ouverture, sans validation), gains,
+     * et apporteur qui a recruté ce compte. Un administrateur n'a pas de code.
      */
     public function show(Request $request)
     {
         $user = $request->user();
-        $apporteur = $user->apporteurProfile()->first();
+
+        try {
+            $apporteur = $this->apporteurs->activate($user);
+        } catch (ApporteurException) {
+            $apporteur = null;
+        }
 
         return response()->json(['data' => [
-            'apporteur' => $apporteur ? $this->format($apporteur, withStats: $apporteur->isActive()) : null,
-            'referred_by' => $user->referrer?->user?->name,
+            'apporteur' => $apporteur ? $this->format($apporteur) : null,
+            'referred_by' => $user->referrer()->with('user:id,name')->first()?->user?->name,
             'can_enter_code' => $user->apporteur_id === null,
             'share_percent' => (int) round(config('marketplace.apporteur_share') * 100),
         ]]);
-    }
-
-    public function store(Request $request)
-    {
-        $details = $request->validate(ApporteurService::detailRules());
-
-        try {
-            $apporteur = $this->apporteurs->apply($request->user(), $details);
-        } catch (ApporteurException $e) {
-            return response()->json(['message' => $e->getMessage()], $e->status);
-        }
-
-        return response()->json(['data' => $this->format($apporteur)], 201);
-    }
-
-    public function destroy(Request $request)
-    {
-        $this->apporteurs->withdraw($request->user());
-
-        return response()->json(null, 204);
     }
 
     /** Un vendeur déjà inscrit saisit le code de l'apporteur qui l'accompagne. */
@@ -64,21 +49,21 @@ class ApporteurController extends Controller
         return response()->json(['message' => "Votre compte est relié à l'apporteur {$apporteur->user->name}."]);
     }
 
-    private function format(Apporteur $apporteur, bool $withStats = false): array
+    private function format(Apporteur $apporteur): array
     {
+        $active = $apporteur->isActive();
+
         $data = [
             'id' => $apporteur->id,
             'status' => $apporteur->status,
             'status_label' => $apporteur->statusLabel(),
-            'code' => $apporteur->isActive() ? $apporteur->code : null,
-            'share_link' => $apporteur->isActive() ? route('register', ['ref' => $apporteur->code]) : null,
-            'details' => $apporteur->details,
+            'code' => $active ? $apporteur->code : null,
+            'share_link' => $active ? ApporteurService::shareLink($apporteur->code) : null,
             'note' => $apporteur->note,
             'created_at' => $apporteur->created_at,
-            'processed_at' => $apporteur->processed_at,
         ];
 
-        if ($withStats) {
+        if ($active) {
             $data['stats'] = $this->apporteurs->stats($apporteur);
             $data['recent_gains'] = $apporteur->commissions()->with('seller:id,name')->latest('id')->limit(20)->get()
                 ->map(fn ($c) => [

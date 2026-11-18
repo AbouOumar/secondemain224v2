@@ -17,24 +17,29 @@
             @if($apporteur && $apporteur->isActive())
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body p-4">
-                        <p class="text-muted mb-1">Votre code apporteur</p>
-                        <div class="d-flex align-items-center gap-3 flex-wrap">
-                            <span class="fs-2 fw-bold" style="letter-spacing: .15em;" id="apporteur-code">{{ $apporteur->code }}</span>
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('apporteur-link').value); this.textContent='Lien copié';">
-                                <i class="bx bx-copy"></i> Copier mon lien d'inscription
+                        <p class="text-muted mb-1">Votre code de parrainage</p>
+                        <div class="fs-2 fw-bold mb-3" style="letter-spacing: .15em;">{{ $apporteur->code }}</div>
+                        <label class="form-label small text-muted mb-1">Votre lien de parrainage</label>
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control" id="apporteur-link" value="{{ $shareLink }}" readonly>
+                            <button type="button" class="btn btn-outline-primary" onclick="navigator.clipboard.writeText(document.getElementById('apporteur-link').value); this.textContent='Copié';">
+                                <i class="bx bx-copy"></i> Copier
                             </button>
+                            <a class="btn btn-success" target="_blank" rel="noopener"
+                               href="https://wa.me/?text={{ rawurlencode("Vends tes biens d'occasion sur Seconde Main 224 : publication gratuite, paiement sécurisé. Inscris-toi avec mon code {$apporteur->code} : {$shareLink}") }}">
+                                <i class="bx bxl-whatsapp"></i> WhatsApp
+                            </a>
                         </div>
-                        <input type="hidden" id="apporteur-link" value="{{ route('register', ['ref' => $apporteur->code]) }}">
-                        <p class="small text-muted mt-2 mb-0">
-                            Les vendeurs saisissent ce code à l'inscription (ou dans leur profil avant leur première vente).
-                            Vous touchez {{ $sharePercent }} % de la commission de Seconde Main 224 sur la première vente de chacun, versés dans votre portefeuille.
+                        <p class="small text-muted mb-0">
+                            Partagez ce lien ou donnez votre code : la personne qui s'inscrit est reliée à vous.
+                            À sa première vente payée en ligne, vous touchez {{ $sharePercent }} % de la commission de Seconde Main 224, versés dans votre portefeuille.
                         </p>
                     </div>
                 </div>
 
                 <div class="row g-3 mb-4">
                     @foreach([
-                        ['Vendeurs apportés', $stats['sellers']],
+                        ['Personnes parrainées', $stats['sellers']],
                         ['Avec une annonce en ligne', $stats['active_sellers']],
                         ['Premières ventes', $stats['first_sales']],
                         ['Gains versés (GNF)', number_format($stats['earned'], 0, ',', ' ')],
@@ -61,68 +66,29 @@
                                 </span>
                             </div>
                         @empty
-                            <p class="text-muted mb-0">Pas encore de gain : dès qu'un vendeur que vous avez apporté vend son premier article, votre part apparaît ici.</p>
+                            <p class="text-muted mb-0">Pas encore de gain : dès qu'une personne que vous avez parrainée vend son premier article, votre part apparaît ici.</p>
                         @endforelse
                     </div>
                 </div>
-            @elseif($apporteur && $apporteur->status === 'en_attente')
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
-                        <h5 class="fw-bold">Candidature en cours d'examen</h5>
-                        <p class="text-muted">Envoyée le {{ $apporteur->created_at->format('d/m/Y') }}. Notre équipe vous contactera sur WhatsApp pour la formation, puis vous recevrez votre code.</p>
-                        <form method="POST" action="{{ route('profile.apporteur.withdraw') }}">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-outline-secondary btn-sm" onclick="return confirm('Retirer votre candidature ?')">Retirer ma candidature</button>
-                        </form>
-                    </div>
-                </div>
             @elseif($apporteur && $apporteur->status === 'suspendu')
-                <div class="alert alert-warning">Votre accès apporteur est suspendu. Contactez l'équipe sur WhatsApp au +224 666 01 25 49.</div>
+                <div class="alert alert-warning">Votre code de parrainage est suspendu{{ $apporteur->note ? ' : ' . $apporteur->note : '' }}. Contactez l'équipe sur WhatsApp au +224 666 01 25 49.</div>
             @else
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
-                        <h5 class="fw-bold">Devenez apporteur d'affaires</h5>
-                        <p class="text-muted">
-                            Trouvez des vendeurs dans votre quartier, aidez-les à publier avec votre code, et touchez {{ $sharePercent }} % de notre commission sur leur première vente.
-                            Aucun diplôme exigé, aucun frais d'inscription.
-                        </p>
-                        @if($apporteur && $apporteur->status === 'refuse')
-                            <div class="alert alert-secondary small">Votre précédente candidature n'a pas été retenue{{ $apporteur->note ? ' : ' . $apporteur->note : '' }}. Vous pouvez en envoyer une nouvelle.</div>
-                        @endif
-                        <form method="POST" action="{{ route('profile.apporteur.apply') }}">
-                            @csrf
-                            <div class="mb-3">
-                                <label class="form-label">Votre quartier *</label>
-                                <input type="text" name="quartier" class="form-control @error('quartier') is-invalid @enderror" maxlength="100" required value="{{ old('quartier') }}" placeholder="Ex. Gbessia, Kaloum, Ratoma…">
-                                @error('quartier')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Votre activité</label>
-                                <input type="text" name="activite" class="form-control" maxlength="100" value="{{ old('activite') }}" placeholder="Étudiant, commerçant, motard…">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Pourquoi voulez-vous nous rejoindre ?</label>
-                                <textarea name="motivation" class="form-control" rows="3" maxlength="500">{{ old('motivation') }}</textarea>
-                            </div>
-                            <button class="btn btn-primary">Envoyer ma candidature</button>
-                        </form>
-                    </div>
-                </div>
+                <div class="alert alert-secondary">Les comptes administrateurs ne participent pas au programme apporteur.</div>
             @endif
         </div>
 
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h5 class="fw-bold">Vous êtes vendeur ?</h5>
+                    <h5 class="fw-bold">Quelqu'un vous a parrainé ?</h5>
                     @if($referrer)
-                        <p class="text-muted mb-0">Votre compte est relié à l'apporteur <strong>{{ $referrer->name }}</strong>.</p>
+                        <p class="text-muted mb-0">Votre compte est relié à <strong>{{ $referrer->name }}</strong>.</p>
                     @else
-                        <p class="text-muted small">Un apporteur vous a aidé à vous inscrire ? Saisissez son code avant votre première vente.</p>
+                        <p class="text-muted small">Saisissez le code de la personne qui vous a fait connaître Seconde Main 224, avant votre première vente.</p>
                         <form method="POST" action="{{ route('profile.apporteur.attach') }}">
                             @csrf
                             <div class="input-group">
-                                <input type="text" name="code" class="form-control text-uppercase @error('code') is-invalid @enderror" maxlength="20" placeholder="Code apporteur" value="{{ old('code') }}" required>
+                                <input type="text" name="code" class="form-control text-uppercase @error('code') is-invalid @enderror" maxlength="20" placeholder="Code de parrainage" value="{{ old('code') }}" required>
                                 <button class="btn btn-primary">Valider</button>
                                 @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
